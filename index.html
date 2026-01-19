@@ -271,6 +271,12 @@
     function formatCurrency(value) {
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
     }
+    function formatDateBR(yyyyMMdd) {
+  if (!yyyyMMdd) return '';
+  const [y, m, d] = yyyyMMdd.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 
     function showSaveIndicator(message) {
       const indicator = document.createElement('div');
@@ -427,33 +433,35 @@
     }
 
     function updateTransactionsList(filtered) {
-      const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
-      const totalFiltered = sorted.reduce((sum, t) => sum + (t.type === 'expense' ? t.value : -t.value), 0);
+  // Ordena sem Date() (YYYY-MM-DD ordena certo como string)
+  const sorted = [...filtered].sort((a, b) => (b.date || '').localeCompare(a.date || '')); // ISO date string sort [web:318]
 
-      document.getElementById('transactionCount').textContent = sorted.length;
-      document.getElementById('totalTransactions').textContent = formatCurrency(Math.abs(totalFiltered));
+  const totalFiltered = sorted.reduce((sum, t) => sum + (t.type === 'expense' ? t.value : -t.value), 0);
 
-      const html = sorted.map(t => `
-        <div class="transaction-item">
-          <span class="transaction-date">${new Date(t.date).toLocaleDateString('pt-BR')}</span>
-          <span class="transaction-desc">${t.description}</span>
-          <span class="transaction-category">${t.category}</span>
-          <span class="transaction-value ${t.type}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.value)}</span>
-          <button class="edit-btn" type="button" data-edit="${t.id}">Editar</button>
-          <button class="delete-btn" type="button" data-del="${t.id}">Deletar</button>
-        </div>
-      `).join('');
+  document.getElementById('transactionCount').textContent = sorted.length;
+  document.getElementById('totalTransactions').textContent = formatCurrency(Math.abs(totalFiltered));
 
-      document.getElementById('transactionsList').innerHTML = html || '<p style="text-align:center;color:#6b7280;">Nenhuma transação registrada</p>';
+  const html = sorted.map(t => `
+    <div class="transaction-item">
+      <span class="transaction-date">${formatDateBR(t.date)}</span>
+      <span class="transaction-desc">${t.description}</span>
+      <span class="transaction-category">${t.category}</span>
+      <span class="transaction-value ${t.type}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.value)}</span>
+      <button class="edit-btn" type="button" data-edit="${t.id}">Editar</button>
+      <button class="delete-btn" type="button" data-del="${t.id}">Deletar</button>
+    </div>
+  `).join('');
 
-      // delegação de evento para botões (evita onclick inline)
-      document.getElementById('transactionsList').querySelectorAll('[data-edit]').forEach(btn => {
-        btn.addEventListener('click', () => editTransaction(btn.getAttribute('data-edit')));
-      });
-      document.getElementById('transactionsList').querySelectorAll('[data-del]').forEach(btn => {
-        btn.addEventListener('click', () => deleteTransaction(btn.getAttribute('data-del')));
-      });
-    }
+  const listEl = document.getElementById('transactionsList');
+  listEl.innerHTML = html || '<p style="text-align:center;color:#6b7280;">Nenhuma transação registrada</p>';
+
+  listEl.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => editTransaction(btn.getAttribute('data-edit')));
+  });
+  listEl.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => deleteTransaction(btn.getAttribute('data-del')));
+  });
+}
 
     function updateCategoryAnalysis(filtered) {
       const categoryData = {};
