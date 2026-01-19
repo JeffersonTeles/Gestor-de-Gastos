@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Gastos 2026</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f3f4f6; margin:0; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:18px; border-radius:12px; }
+    .section { background:#fff; border-radius:12px; padding:16px; margin-top:14px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+    .summary { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .card { padding:14px; border-radius:12px; color:#111827; background:#fff; border:1px solid #e5e7eb; }
+    .card-label { font-size: 13px; color:#6b7280; }
+    .card-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+    .income { border-left: 6px solid #10b981; }
+    .expense { border-left: 6px solid #ef4444; }
+    .savings { border-left: 6px solid #3b82f6; }
+
+    .form-row { display:flex; flex-wrap:wrap; gap: 12px; }
+    .form-group { flex: 1; min-width: 180px; }
+    label { display:block; font-size: 12px; color:#374151; margin-bottom:6px; }
+    input, select { width:100%; padding:10px; border-radius:10px; border:1px solid #d1d5db; outline:none; }
+    input:focus, select:focus { border-color:#667eea; }
+
+    .button-group { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+    button { cursor:pointer; border:0; padding:10px 12px; border-radius:10px; font-weight:600; }
+    .btn-add { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+    .btn-clear { background:#e5e7eb; color:#111827; }
+    .btn-cancel { background:#ef4444; color:#fff; }
+    .btn-export { background:#111827; color:#fff; }
+
+    .month-selector { display:flex; gap:10px; align-items:center; }
+    .month-selector select { max-width: 180px; }
+
+    .content { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .chart-container { height: 280px; }
+
+    .transactions-list { margin-top: 10px; display:flex; flex-direction:column; gap: 8px; }
+    .transaction-item {
+      display:grid;
+      grid-template-columns: 110px 1fr 180px 140px 90px 100px;
+      gap: 10px;
+      align-items:center;
+      padding:10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background:#fff;
+    }
+    .transaction-value.income { color:#059669; font-weight:700; }
+    .transaction-value.expense { color:#dc2626; font-weight:700; }
+    .edit-btn { background:#f59e0b; color:#111827; }
+    .delete-btn { background:#ef4444; color:#fff; }
+
+    .search-box input { width:100%; }
+
+    .stats-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stat-box { border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
+    .stat-label { color:#6b7280; font-size: 13px; }
+    .stat-value { font-size: 18px; font-weight: 700; margin-top:6px; }
+
+    .category-item { display:flex; justify-content:space-between; padding:10px; border:1px solid #e5e7eb; border-radius:10px; margin-top:8px; }
+    .save-indicator {
+      position: fixed; right: 16px; bottom: 16px;
+      background:#111827; color:#fff; padding:10px 12px; border-radius:10px;
+    }
+
+    .drop-zone-active { background:#eef2ff !important; border-color:#4f46e5 !important; }
+
+    .import-success { background:#ecfdf5; border:1px solid #10b981; color:#065f46; padding:10px; border-radius:10px; }
+    .import-error { background:#fef2f2; border:1px solid #ef4444; color:#7f1d1d; padding:10px; border-radius:10px; }
+
+    @media (max-width: 980px) {
+      .content { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: 1fr; }
+      .transaction-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Controle de Gastos 2026</h1>
+      <p style="color: rgba(255,255,255,0.9); margin:0;">Acompanhe suas receitas, despesas e economias</p>
+    </div>
+
+    <div class="section" id="authBox" style="max-width:520px;margin:14px auto;">
+      <h2>Login</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" placeholder="seuemail@email.com">
+        </div>
+        <div class="form-group">
+          <label for="authPass">Senha</label>
+          <input id="authPass" type="password" placeholder="••••••••">
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn-add" id="btnLogin" type="button">Entrar</button>
+        <button class="btn-clear" id="btnSignup" type="button">Criar conta</button>
+        <button class="btn-clear" id="btnLogout" type="button" style="display:none;">Sair</button>
+      </div>
+      <div id="authStatus" style="margin-top:10px;color:#6b7280;font-size:13px;"></div>
+    </div>
+
+    <div class="section month-selector">
+      <label for="monthSelect" style="margin:0;">Filtrar mês</label>
+      <select id="monthSelect">
+        <option value="">Todos</option>
+        <option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option>
+        <option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+        <option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+      </select>
+    </div>
+
+    <div class="summary">
+      <div class="card income">
+        <div class="card-label">Receitas</div>
+        <div class="card-value" id="totalIncome">R$ 0,00</div>
+      </div>
+      <div class="card expense">
+        <div class="card-label">Despesas</div>
+        <div class="card-value" id="totalExpense">R$ 0,00</div>
+      </div>
+      <div class="card savings">
+        <div class="card-label">Economia</div>
+        <div class="card-value" id="totalSavings">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="transaction-form section">
+      <h2>Adicionar/Editar Transação</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="date">Data</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <input type="text" id="description" placeholder="Ex: Mercado, Gasolina..." />
+        </div>
+        <div class="form-group">
+          <label for="category">Categoria</label>
+          <select id="category">
+            <option>Salário</option>
+            <option>Empréstimo do Carro</option>
+            <option>Faculdade</option>
+            <option>Fatura do Banco</option>
+            <option>Plano de Celular</option>
+            <option>Van (Transporte)</option>
+            <option>Alimentação</option>
+            <option>Combustível</option>
+            <option>Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="value">Valor (R$)</label>
+          <input type="number" id="value" placeholder="0,00" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label for="type">Tipo</label>
+          <select id="type">
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn-add" id="btnAddEdit" type="button">Adicionar</button>
+        <button class="btn-clear" id="btnClear" type="button">Limpar</button>
+        <button class="btn-cancel" id="btnCancel" type="button" style="display:none;">Cancelar Edição</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Importar CSV</h2>
+      <div id="dropZone" style="border: 2px dashed #667eea; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; background: #f8f9ff;">
+        <p style="font-size: 16px; margin: 8px 0;">Arraste o CSV aqui ou clique</p>
+        <input type="file" id="csvFile" accept=".csv" style="display:none;" />
+        <p style="color:#6b7280; font-size: 12px; margin:0;">Formato esperado: data, descrição, valor</p>
+      </div>
+      <div id="importStatus" style="margin-top: 12px;"></div>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2>Gasto vs Economia (por mês)</h2>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Distribuição por Categoria</h2>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Últimas Transações</h2>
+      <div class="search-box">
+        <input type="text" id="searchBox" placeholder="Buscar por descrição ou categoria..." />
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:baseline; margin-top: 12px;">
+        <h3 style="margin:0;">Total de Transações: <span id="transactionCount">0</span></h3>
+        <div style="font-weight:800;" id="totalTransactions">R$ 0,00</div>
+      </div>
+      <div class="transactions-list" id="transactionsList"></div>
+    </div>
+
+    <div class="section">
+      <h2>Análise por Categoria</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Total de Despesas</div>
+          <div class="stat-value" id="totalExpensesAmount">R$ 0,00</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total de Receitas</div>
+          <div class="stat-value" id="totalIncomesAmount">R$ 0,00</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Taxa de Economia</div>
+          <div class="stat-value" id="savingsRate">0%</div>
+        </div>
+      </div>
+      <div class="category-analysis" id="categoryAnalysis"></div>
+    </div>
+
+    <div class="section">
+      <h2>Exportar</h2>
+      <div class="button-group">
+        <button class="btn-export" id="btnExportJSON" type="button">Baixar JSON</button>
+        <button class="btn-export" id="btnExportCSV" type="button">Baixar CSV</button>
+        <button class="btn-export" id="btnPrint" type="button">Imprimir</button>
+        <button class="btn-cancel" id="btnClearAll" type="button">Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================
+       SUPABASE
+    ========================= */
+    const SUPABASE_URL = "https://myimvdbtzswzntpwyaxv.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15aW12ZGJ0enN3em50cHd5YXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MDAwMTksImV4cCI6MjA4NDE3NjAxOX0.VA4DGrvp4Z0EtwJk2zceC6ncze_QZs0QaClLsXM1lXE"; // use anon/public key
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY); // createClient padrão no JS SDK v2 [web:17]
+
+    const categories = ['Salário','Empréstimo do Carro','Faculdade','Fatura do Banco','Plano de Celular','Van (Transporte)','Alimentação','Combustível','Outros'];
+
+    let transactions = [];
+    let monthlyChart = null;
+    let categoryChart = null;
+    let editingId = null;
+
+    function setAuthStatus(msg) {
+      const el = document.getElementById('authStatus');
+      if (el) el.textContent = msg || '';
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+    }
+
+    function showSaveIndicator(message) {
+      const indicator = document.createElement('div');
+      indicator.className = 'save-indicator';
+      indicator.textContent = message;
+      document.body.appendChild(indicator);
+      setTimeout(() => indicator.remove(), 2000);
+    }
+
+    function clearForm() {
+      document.getElementById('date').valueAsDate = new Date();
+      document.getElementById('description').value = '';
+      document.getElementById('value').value = '';
+      document.getElementById('category').value = 'Salário';
+      document.getElementById('type').value = 'expense';
+    }
+
+    async function refreshAuthUI() {
+      const { data: { session } } = await sb.auth.getSession();
+      const logged = !!session?.user;
+
+      document.getElementById('btnLogout').style.display = logged ? 'inline-block' : 'none';
+      document.getElementById('btnLogin').style.display = logged ? 'none' : 'inline-block';
+      document.getElementById('btnSignup').style.display = logged ? 'none' : 'inline-block';
+
+      const lockSelectors = ['.month-selector','.summary','.transaction-form','.content','.section:nth-last-child(1)', '.section:nth-last-child(2)'];
+      // (deixa simples: oculta/mostra os blocos principais)
+      document.querySelector('.month-selector').style.display = logged ? 'flex' : 'none';
+      document.querySelector('.summary').style.display = logged ? 'grid' : 'none';
+      document.querySelector('.transaction-form').style.display = logged ? 'block' : 'none';
+      document.querySelector('.content').style.display = logged ? 'grid' : 'none';
+
+      // seções após charts
+      const sections = document.querySelectorAll('.container > .section');
+      // sections[0]=authBox, sections[1]=monthSelector, ...
+      for (let i = 2; i < sections.length; i++) sections[i].style.display = logged ? 'block' : 'none';
+
+      if (logged) {
+        setAuthStatus(`Logado: ${session.user.email}`);
+        await loadTransactions();
+      } else {
+        setAuthStatus('Faça login para ver seus dados.');
+        transactions = [];
+        updateDashboard();
+      }
+    }
+
+    async function loadTransactions() {
+      // Carrega só do usuário se sua policy usar user_id = auth.uid()
+      const { data, error } = await sb
+        .from('transactions')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        setAuthStatus('Erro carregando dados: ' + error.message);
+        transactions = [];
+      } else {
+        transactions = (data || []).map(r => ({
+          id: r.id,
+          user_id: r.user_id,
+          date: r.date,
+          description: r.description,
+          category: r.category,
+          value: Number(r.value),
+          type: r.type
+        }));
+      }
+      updateDashboard();
+    }
+
+    function getFilteredTransactions() {
+      const month = document.getElementById('monthSelect')?.value || '';
+      const search = (document.getElementById('searchBox')?.value || '').toLowerCase();
+
+      let filtered = transactions;
+      if (month) filtered = filtered.filter(t => (t.date || '').substring(5, 7) === month);
+      if (search) {
+        filtered = filtered.filter(t =>
+          (t.description || '').toLowerCase().includes(search) ||
+          (t.category || '').toLowerCase().includes(search)
+        );
+      }
+      return filtered;
+    }
+
+    function updateDashboard() {
+      const filtered = getFilteredTransactions();
+
+      const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.value, 0);
+      const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.value, 0);
+      const savings = income - expense;
+
+      document.getElementById('totalIncome').textContent = formatCurrency(income);
+      document.getElementById('totalExpense').textContent = formatCurrency(expense);
+      document.getElementById('totalSavings').textContent = formatCurrency(savings);
+
+      updateCharts(filtered);
+      updateTransactionsList(filtered);
+      updateCategoryAnalysis(filtered);
+    }
+
+    function updateCharts(filtered) {
+      const monthCanvas = document.getElementById('monthlyChart');
+      const catCanvas = document.getElementById('categoryChart');
+      if (!monthCanvas || !catCanvas) return; // evita getContext null [web:10]
+
+      const monthlyData = {};
+      for (let i = 1; i <= 12; i++) {
+        const monthStr = String(i).padStart(2, '0');
+        const monthTransactions = filtered.filter(t => (t.date || '').substring(5, 7) === monthStr);
+        const income = monthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.value, 0);
+        const expense = monthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.value, 0);
+        monthlyData[i] = { expense, savings: income - expense };
+      }
+
+      const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const expenses = monthNames.map((_, i) => monthlyData[i + 1].expense);
+      const savingsData = monthNames.map((_, i) => monthlyData[i + 1].savings);
+
+      const monthCtx = monthCanvas.getContext('2d');
+      if (monthlyChart) monthlyChart.destroy();
+      monthlyChart = new Chart(monthCtx, {
+        type: 'bar',
+        data: {
+          labels: monthNames,
+          datasets: [
+            { label: 'Despesas', data: expenses, backgroundColor: '#ef4444', borderRadius: 8 },
+            { label: 'Economia', data: savingsData, backgroundColor: '#10b981', borderRadius: 8 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } }
+      });
+
+      const categoryData = {};
+      categories.forEach(cat => {
+        const catTransactions = filtered.filter(t => t.category === cat && t.type === 'expense');
+        categoryData[cat] = catTransactions.reduce((sum, t) => sum + t.value, 0);
+      });
+
+      const catCtx = catCanvas.getContext('2d');
+      if (categoryChart) categoryChart.destroy();
+      categoryChart = new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(categoryData).filter(cat => categoryData[cat] > 0),
+          datasets: [{
+            data: Object.values(categoryData).filter(val => val > 0),
+            backgroundColor: ['#667eea','#764ba2','#ef4444','#10b981','#f59e0b','#06b6d4','#ec4899','#8b5cf6','#14b8a6']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+
+    function updateTransactionsList(filtered) {
+      const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const totalFiltered = sorted.reduce((sum, t) => sum + (t.type === 'expense' ? t.value : -t.value), 0);
+
+      document.getElementById('transactionCount').textContent = sorted.length;
+      document.getElementById('totalTransactions').textContent = formatCurrency(Math.abs(totalFiltered));
+
+      const html = sorted.map(t => `
+        <div class="transaction-item">
+          <span class="transaction-date">${new Date(t.date).toLocaleDateString('pt-BR')}</span>
+          <span class="transaction-desc">${t.description}</span>
+          <span class="transaction-category">${t.category}</span>
+          <span class="transaction-value ${t.type}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.value)}</span>
+          <button class="edit-btn" type="button" data-edit="${t.id}">Editar</button>
+          <button class="delete-btn" type="button" data-del="${t.id}">Deletar</button>
+        </div>
+      `).join('');
+
+      document.getElementById('transactionsList').innerHTML = html || '<p style="text-align:center;color:#6b7280;">Nenhuma transação registrada</p>';
+
+      // delegação de evento para botões (evita onclick inline)
+      document.getElementById('transactionsList').querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', () => editTransaction(btn.getAttribute('data-edit')));
+      });
+      document.getElementById('transactionsList').querySelectorAll('[data-del]').forEach(btn => {
+        btn.addEventListener('click', () => deleteTransaction(btn.getAttribute('data-del')));
+      });
+    }
+
+    function updateCategoryAnalysis(filtered) {
+      const categoryData = {};
+      const incomeData = {};
+
+      categories.forEach(cat => {
+        const catExpenses = filtered.filter(t => t.category === cat && t.type === 'expense');
+        const catIncomes = filtered.filter(t => t.category === cat && t.type === 'income');
+        categoryData[cat] = catExpenses.reduce((sum, t) => sum + t.value, 0);
+        incomeData[cat] = catIncomes.reduce((sum, t) => sum + t.value, 0);
+      });
+
+      const totalExpense = Object.values(categoryData).reduce((sum, val) => sum + val, 0);
+      const totalIncome = Object.values(incomeData).reduce((sum, val) => sum + val, 0);
+      const savingsPercent = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome * 100).toFixed(1) : 0;
+
+      document.getElementById('totalExpensesAmount').textContent = formatCurrency(totalExpense);
+      document.getElementById('totalIncomesAmount').textContent = formatCurrency(totalIncome);
+      document.getElementById('savingsRate').textContent = savingsPercent + '%';
+
+      const html = Object.entries(categoryData)
+        .filter(([_, value]) => value > 0)
+        .sort(([,a], [,b]) => b - a)
+        .map(([cat, value]) => `
+          <div class="category-item">
+            <span class="category-name">${cat}</span>
+            <div>
+              <span class="category-value">${formatCurrency(value)}</span>
+              <span class="category-percent"> (${totalExpense > 0 ? ((value / totalExpense) * 100).toFixed(1) : 0}%)</span>
+            </div>
+          </div>
+        `).join('');
+
+      document.getElementById('categoryAnalysis').innerHTML = html || '<p style="text-align:center;color:#6b7280;">Sem despesas neste período</p>';
+    }
+
+    async function addOrEditTransaction() {
+      const date = document.getElementById('date').value;
+      const description = document.getElementById('description').value.trim();
+      const category = document.getElementById('category').value;
+      const value = parseFloat(document.getElementById('value').value);
+      const type = document.getElementById('type').value;
+
+      if (!date || !description || !value || value <= 0) {
+        alert('Preencha todos os campos corretamente!');
+        return;
+      }
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) {
+        alert('Faça login antes de salvar.');
+        return;
+      }
+
+      if (editingId) {
+        const { error } = await sb
+          .from('transactions')
+          .update({ date, description, category, value, type })
+          .eq('id', editingId);
+
+        if (error) return alert(error.message);
+        showSaveIndicator('Transação atualizada!');
+        cancelEdit();
+      } else {
+        // grava user_id para a RLS funcionar
+        const { error } = await sb
+          .from('transactions')
+          .insert({ user_id: session.user.id, date, description, category, value, type });
+
+        if (error) return alert(error.message);
+        showSaveIndicator('Transação adicionada!');
+        clearForm();
+      }
+
+      await loadTransactions();
+    }
+
+    function editTransaction(id) {
+      const transaction = transactions.find(t => String(t.id) === String(id));
+      if (!transaction) return;
+
+      editingId = transaction.id;
+      document.getElementById('date').value = transaction.date;
+      document.getElementById('description').value = transaction.description;
+      document.getElementById('category').value = transaction.category;
+      document.getElementById('value').value = transaction.value;
+      document.getElementById('type').value = transaction.type;
+
+      document.getElementById('btnAddEdit').textContent = 'Atualizar';
+      document.getElementById('btnCancel').style.display = 'inline-block';
+      document.querySelector('.transaction-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      clearForm();
+      document.getElementById('btnAddEdit').textContent = 'Adicionar';
+      document.getElementById('btnCancel').style.display = 'none';
+    }
+
+    async function deleteTransaction(id) {
+      if (!confirm('Tem certeza que deseja deletar esta transação?')) return;
+
+      const { error } = await sb.from('transactions').delete().eq('id', id);
+      if (error) return alert(error.message);
+
+      showSaveIndicator('Transação deletada!');
+      await loadTransactions();
+    }
+
+    function exportJSON() {
+      const dataStr = JSON.stringify(transactions, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `gastos_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      showSaveIndicator('JSON exportado!');
+    }
+
+    function exportCSV() {
+      let csv = 'Data,Descrição,Categoria,Valor,Tipo\n';
+      transactions.forEach(t => {
+        csv += `"${t.date}","${t.description}","${t.category}",${t.value},"${t.type}"\n`;
+      });
+      const dataBlob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `gastos_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      showSaveIndicator('CSV exportado!');
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    async function clearAllData() {
+      if (!confirm('Tem CERTEZA que deseja deletar TUDO?')) return;
+
+      // deleta tudo do usuário (RLS deve garantir isso)
+      const { error } = await sb.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) return alert(error.message);
+
+      showSaveIndicator('Dados deletados!');
+      await loadTransactions();
+    }
+
+    // CSV import
+    const dropZone = document.getElementById('dropZone');
+    const csvFile = document.getElementById('csvFile');
+
+    dropZone.addEventListener('click', () => csvFile.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone-active'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drop-zone-active');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleCSVUpload(files[0]);
+    });
+    csvFile.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleCSVUpload(e.target.files[0]);
+    });
+
+    async function handleCSVUpload(file) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) return alert('Faça login antes de importar CSV.');
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const csv = e.target.result;
+          const lines = csv.split('\n');
+
+          let imported = 0;
+          let skipped = 0;
+
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            const parts = lines[i].split(',');
+            if (parts.length < 3) { skipped++; continue; }
+
+            const date = parts[0].trim().replace(/"/g, '');
+            const description = parts[1].trim().replace(/"/g, '');
+            const value = parseFloat(parts[2].trim().replace(/"/g, '').replace(',', '.'));
+
+            if (!date || !value || value <= 0) { skipped++; continue; }
+
+            let category = 'Outros';
+            const desc = description.toLowerCase();
+            if (desc.includes('faculdade') || desc.includes('educacao') || desc.includes('educação')) category = 'Faculdade';
+            else if (desc.includes('van') || desc.includes('transporte')) category = 'Van (Transporte)';
+            else if (desc.includes('combust') || desc.includes('gasolina')) category = 'Combustível';
+            else if (desc.includes('comida') || desc.includes('mercado') || desc.includes('aliment')) category = 'Alimentação';
+            else if (desc.includes('banco') || desc.includes('fatura')) category = 'Fatura do Banco';
+            else if (desc.includes('celular') || desc.includes('telefone')) category = 'Plano de Celular';
+            else if (desc.includes('carro') || desc.includes('empr')) category = 'Empréstimo do Carro';
+
+            const { error } = await sb
+              .from('transactions')
+              .insert({ user_id: session.user.id, date, description, category, value, type: 'expense' });
+
+            if (error) skipped++;
+            else imported++;
+          }
+
+          csvFile.value = '';
+          document.getElementById('importStatus').innerHTML =
+            `<div class="${imported > 0 ? 'import-success' : 'import-error'}">
+              ${imported > 0 ? `Importado ${imported} transações!` : 'Nenhuma transação válida encontrada'}
+              ${skipped > 0 ? ` (${skipped} ignoradas/erro)` : ''}
+            </div>`;
+
+          setTimeout(() => (document.getElementById('importStatus').innerHTML = ''), 4000);
+          await loadTransactions();
+        } catch (err) {
+          document.getElementById('importStatus').innerHTML =
+            `<div class="import-error">Erro ao processar CSV: ${err.message}</div>`;
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // AUTH events e botões
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+      try {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPass').value;
+
+        setAuthStatus('Entrando...');
+        const { error } = await sb.auth.signInWithPassword({ email, password }); // API v2 [web:16]
+        if (error) return setAuthStatus(error.message);
+
+        await refreshAuthUI();
+      } catch (e) {
+        setAuthStatus(e.message || String(e));
+      }
+    });
+
+    document.getElementById('btnSignup').addEventListener('click', async () => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPass').value;
+
+      setAuthStatus('Criando conta...');
+      const { error } = await sb.auth.signUp({ email, password });
+      if (error) return setAuthStatus(error.message);
+
+      setAuthStatus('Conta criada! Agora clique em Entrar.');
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      await refreshAuthUI();
+    });
+
+    sb.auth.onAuthStateChange(() => {
+      // listener básico recomendado [web:21]
+      refreshAuthUI();
+    });
+
+    // UI events
+    document.getElementById('btnAddEdit').addEventListener('click', addOrEditTransaction);
+    document.getElementById('btnClear').addEventListener('click', clearForm);
+    document.getElementById('btnCancel').addEventListener('click', cancelEdit);
+
+    document.getElementById('monthSelect').addEventListener('change', updateDashboard);
+    document.getElementById('searchBox').addEventListener('input', updateDashboard);
+
+    document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
+    document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+    document.getElementById('btnPrint').addEventListener('click', printReport);
+    document.getElementById('btnClearAll').addEventListener('click', clearAllData);
+
+    // INIT
+    clearForm();
+    updateDashboard();
+    refreshAuthUI();
+  </script>
+</body>
+</html>
