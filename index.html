@@ -34,6 +34,7 @@
     .btn-clear { background:#e5e7eb; color:#111827; }
     .btn-cancel { background:#ef4444; color:#fff; }
     .btn-export { background:#111827; color:#fff; }
+    .btn-warning { background:#f59e0b; color:#111827; }
 
     .month-selector { display:flex; gap:10px; align-items:center; }
     .month-selector select { max-width: 180px; }
@@ -75,10 +76,24 @@
     .import-success { background:#ecfdf5; border:1px solid #10b981; color:#065f46; padding:10px; border-radius:10px; }
     .import-error { background:#fef2f2; border:1px solid #ef4444; color:#7f1d1d; padding:10px; border-radius:10px; }
 
+    .rule-item{
+      display:grid;
+      grid-template-columns: 1fr 140px 120px 120px 120px;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      background:#fff;
+      margin-top:8px;
+    }
+    .muted { color:#6b7280; font-size:12px; }
+
     @media (max-width: 980px) {
       .content { grid-template-columns: 1fr; }
       .summary { grid-template-columns: 1fr; }
       .transaction-item { grid-template-columns: 1fr; }
+      .rule-item { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -142,6 +157,69 @@
       </div>
     </div>
 
+    <!-- RECORRÊNCIAS -->
+    <div class="section">
+      <h2>Recorrências (Empréstimos/Mensalidades)</h2>
+      <p class="muted">Crie uma regra mensal e o sistema gera automaticamente os lançamentos via RPC.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ruleDescription">Descrição</label>
+          <input id="ruleDescription" type="text" placeholder="Ex: Empréstimo do carro" />
+        </div>
+
+        <div class="form-group">
+          <label for="ruleCategory">Categoria</label>
+          <select id="ruleCategory">
+            <option>Salário</option>
+            <option>Empréstimo do Carro</option>
+            <option>Faculdade</option>
+            <option>Fatura do Banco</option>
+            <option>Plano de Celular</option>
+            <option>Van (Transporte)</option>
+            <option>Alimentação</option>
+            <option>Combustível</option>
+            <option>Outros</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ruleType">Tipo</label>
+          <select id="ruleType">
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ruleAmount">Valor (R$)</label>
+          <input id="ruleAmount" type="number" step="0.01" placeholder="0,00" />
+        </div>
+
+        <div class="form-group">
+          <label for="ruleDay">Dia do mês (1-31)</label>
+          <input id="ruleDay" type="number" min="1" max="31" placeholder="10" />
+        </div>
+
+        <div class="form-group">
+          <label for="ruleStart">Início</label>
+          <input id="ruleStart" type="date" />
+        </div>
+
+        <div class="form-group">
+          <label for="ruleEnd">Fim (opcional)</label>
+          <input id="ruleEnd" type="date" />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-add" id="btnAddRule" type="button">Salvar regra</button>
+        <button class="btn-warning" id="btnGenerateNow" type="button">Gerar agora (6 meses)</button>
+      </div>
+
+      <div id="rulesList"></div>
+    </div>
+
     <div class="transaction-form section">
       <h2>Adicionar/Editar Transação</h2>
       <div class="form-row">
@@ -189,7 +267,8 @@
     <div class="section">
       <h2>Importar CSV/OFX</h2>
       <div id="dropZone" style="border: 2px dashed #667eea; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; background: #f8f9ff;">
-        <p style="font-size: 16px; margin: 8px 0;">Arraste o CSV/OFX aqui ou clique</p>
+        <p style="font-size: 16px; margin: 8px 0;">Arraste o arquivo aqui ou clique</p>
+        <!-- Dica iPhone: se não der pra selecionar OFX, remova o accept -->
         <input type="file" id="csvFile" accept=".csv,.ofx" style="display:none;" />
         <p style="color:#6b7280; font-size: 12px; margin:0;">CSV: Data/Descrição/Valor | OFX: extrai STMTTRN</p>
       </div>
@@ -255,14 +334,11 @@
   </div>
 
   <script>
-    /* =========================
-       SUPABASE
-    ========================= */
     const SUPABASE_URL = "https://myimvdbtzswzntpwyaxv.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15aW12ZGJ0enN3em50cHd5YXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MDAwMTksImV4cCI6MjA4NDE3NjAxOX0.VA4DGrvp4Z0EtwJk2zceC6ncze_QZs0QaClLsXM1lXE";
 
     const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY); // init [web:16]
 
     const categories = ['Salário','Empréstimo do Carro','Faculdade','Fatura do Banco','Plano de Celular','Van (Transporte)','Alimentação','Combustível','Outros'];
 
@@ -302,6 +378,162 @@
       document.getElementById('type').value = 'expense';
     }
 
+    function clearRuleForm() {
+      document.getElementById('ruleDescription').value = '';
+      document.getElementById('ruleCategory').value = 'Outros';
+      document.getElementById('ruleType').value = 'expense';
+      document.getElementById('ruleAmount').value = '';
+      document.getElementById('ruleDay').value = '';
+      document.getElementById('ruleStart').valueAsDate = new Date();
+      document.getElementById('ruleEnd').value = '';
+    }
+
+    /* =========================
+       RECORRÊNCIA (RPC)
+    ========================= */
+    async function ensureRecurringGenerated(showAlwaysToast = false) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) return;
+
+      const from = new Date();
+      const to = new Date();
+      to.setMonth(to.getMonth() + 6);
+
+      const fmt = (dt) => dt.toISOString().slice(0, 10);
+
+      const { data, error } = await sb.rpc('generate_recurring_transactions', {
+        p_user_id: session.user.id,
+        p_from: fmt(from),
+        p_to: fmt(to),
+      }); // RPC [web:121]
+
+      if (error) {
+        setAuthStatus('Erro recorrência: ' + error.message);
+        alert('Erro recorrência: ' + error.message);
+        return;
+      }
+
+      if (showAlwaysToast) showSaveIndicator(`Recorrência: gerado ${data ?? 0}`);
+      else if ((data ?? 0) > 0) showSaveIndicator(`Gerado ${data} lançamentos automáticos`);
+    }
+
+    async function loadRules() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) { document.getElementById('rulesList').innerHTML = ''; return; }
+
+      const { data, error } = await sb
+        .from('recurring_rules')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        document.getElementById('rulesList').innerHTML = `<div class="import-error">Erro carregando regras: ${error.message}</div>`;
+        return;
+      }
+
+      const rules = data || [];
+      if (!rules.length) {
+        document.getElementById('rulesList').innerHTML = `<p class="muted">Nenhuma recorrência cadastrada.</p>`;
+        return;
+      }
+
+      document.getElementById('rulesList').innerHTML = rules.map(r => `
+        <div class="rule-item">
+          <div>
+            <div style="font-weight:800">${r.description}</div>
+            <div class="muted">
+              ${r.type === 'expense' ? 'Despesa' : 'Receita'} • ${r.category} • R$ ${Number(r.amount).toFixed(2)} • Dia ${r.day_of_month}
+              ${r.end_date ? ` • até ${formatDateBR(r.end_date)}` : ' • sem fim'}
+              ${r.active ? '' : ' • (inativa)'}
+            </div>
+          </div>
+          <div style="font-weight:800">${r.active ? 'Ativa' : 'Inativa'}</div>
+          <button class="btn-warning" type="button" data-toggle="${r.id}">${r.active ? 'Desativar' : 'Ativar'}</button>
+          <button class="btn-cancel" type="button" data-delrule="${r.id}">Excluir</button>
+          <button class="btn-add" type="button" data-generate="${r.id}">Gerar</button>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('[data-toggle]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-toggle');
+          const rule = rules.find(x => String(x.id) === String(id));
+          if (!rule) return;
+
+          const { error } = await sb.from('recurring_rules')
+            .update({ active: !rule.active })
+            .eq('id', id);
+
+          if (error) return alert(error.message);
+          showSaveIndicator('Regra atualizada!');
+          await loadRules();
+        });
+      });
+
+      document.querySelectorAll('[data-delrule]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-delrule');
+          if (!confirm('Excluir essa recorrência?')) return;
+
+          const { error } = await sb.from('recurring_rules').delete().eq('id', id);
+          if (error) return alert(error.message);
+          showSaveIndicator('Recorrência excluída!');
+          await loadRules();
+        });
+      });
+
+      document.querySelectorAll('[data-generate]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await ensureRecurringGenerated(true);
+          await loadTransactions();
+        });
+      });
+    }
+
+    async function addRule() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.user) return alert('Faça login antes de salvar.');
+
+      const description = document.getElementById('ruleDescription').value.trim();
+      const category = document.getElementById('ruleCategory').value;
+      const type = document.getElementById('ruleType').value;
+      const amount = parseFloat(document.getElementById('ruleAmount').value);
+      const day_of_month = parseInt(document.getElementById('ruleDay').value, 10);
+      const start_date = document.getElementById('ruleStart').value;
+      const end_date = document.getElementById('ruleEnd').value || null;
+
+      if (!description || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(day_of_month) || day_of_month < 1 || day_of_month > 31 || !start_date) {
+        return alert('Preencha a recorrência corretamente.');
+      }
+
+      const payload = {
+        user_id: session.user.id,
+        description,
+        category,
+        type,
+        amount,
+        day_of_month,
+        start_date,
+        end_date,
+        active: true,
+      };
+
+      const { error } = await sb.from('recurring_rules').insert(payload);
+      if (error) return alert(error.message);
+
+      showSaveIndicator('Recorrência salva!');
+      clearRuleForm();
+      await loadRules();
+
+      // opcional: já gera na hora
+      await ensureRecurringGenerated(true);
+      await loadTransactions();
+    }
+
+    /* =========================
+       AUTH UI
+    ========================= */
     async function refreshAuthUI() {
       const { data: { session } } = await sb.auth.getSession();
       const logged = !!session?.user;
@@ -320,10 +552,13 @@
 
       if (logged) {
         setAuthStatus(`Logado: ${session.user.email}`);
+        await ensureRecurringGenerated(false);
+        await loadRules();
         await loadTransactions();
       } else {
         setAuthStatus('Faça login para ver seus dados.');
         transactions = [];
+        document.getElementById('rulesList').innerHTML = '';
         updateDashboard();
       }
     }
@@ -666,7 +901,7 @@
       Papa.parse(file, {
         header: true,
         skipEmptyLines: 'greedy',
-        delimiter: "", // auto-detect [web:7]
+        delimiter: "",
         beforeFirstChunk: (chunk) => String(chunk).replace(/^\uFEFF/, '').replace(/^sep=.+\r?\n/i, ''),
         complete: async (results) => {
           const rows = results.data || [];
@@ -718,7 +953,6 @@
       const reader = new FileReader();
       reader.onload = async () => {
         const text = String(reader.result || '');
-
         const blocks = text.match(/<STMTTRN>[\s\S]*?<\/STMTTRN>/gi) || [];
         let imported = 0, skipped = 0;
 
@@ -797,6 +1031,12 @@
 
     sb.auth.onAuthStateChange(() => { refreshAuthUI(); });
 
+    document.getElementById('btnAddRule').addEventListener('click', addRule);
+    document.getElementById('btnGenerateNow').addEventListener('click', async () => {
+      await ensureRecurringGenerated(true);
+      await loadTransactions();
+    });
+
     document.getElementById('btnAddEdit').addEventListener('click', addOrEditTransaction);
     document.getElementById('btnClear').addEventListener('click', clearForm);
     document.getElementById('btnCancel').addEventListener('click', cancelEdit);
@@ -812,6 +1052,7 @@
 
     /* INIT */
     clearForm();
+    clearRuleForm();
     updateDashboard();
     refreshAuthUI();
   </script>
