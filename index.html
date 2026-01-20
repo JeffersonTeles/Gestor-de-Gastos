@@ -7,7 +7,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background:#f3f4f6; margin:0; }
     .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
@@ -110,14 +110,22 @@
     </div>
 
     <div class="section month-selector">
-      <label for="monthSelect" style="margin:0;">Filtrar mês</label>
-      <select id="monthSelect">
-        <option value="">Todos</option>
-        <option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option>
-        <option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
-        <option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
-      </select>
-    </div>
+  <label for="yearSelect" style="margin:0;">Ano</label>
+  <select id="yearSelect">
+    <option value="">Todos</option>
+    <option value="2026">2026</option>
+    <option value="2025">2025</option>
+  </select>
+
+  <label for="monthSelect" style="margin:0;">Filtrar mês</label>
+  <select id="monthSelect">
+    <option value="">Todos</option>
+    <option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option>
+    <option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+    <option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option>
+  </select>
+</div>
+
 
     <div class="summary">
       <div class="card income">
@@ -361,7 +369,26 @@
         );
       }
       return filtered;
-    }
+    }function getFilteredTransactions() {
+  const month = document.getElementById('monthSelect')?.value || '';
+  const year  = document.getElementById('yearSelect')?.value || '';
+  const search = (document.getElementById('searchBox')?.value || '').toLowerCase();
+
+  let filtered = transactions;
+
+  if (year)  filtered = filtered.filter(t => (t.date || '').substring(0, 4) === year);
+  if (month) filtered = filtered.filter(t => (t.date || '').substring(5, 7) === month);
+
+  if (search) {
+    filtered = filtered.filter(t =>
+      (t.description || '').toLowerCase().includes(search) ||
+      (t.category || '').toLowerCase().includes(search)
+    );
+  }
+
+  return filtered;
+}
+
 
     function updateDashboard() {
       const filtered = getFilteredTransactions();
@@ -613,81 +640,103 @@
     }
 
     // CSV import
-    const dropZone = document.getElementById('dropZone');
-    const csvFile = document.getElementById('csvFile');
+const dropZone = document.getElementById('dropZone');
+const csvFile = document.getElementById('csvFile');
 
-    dropZone.addEventListener('click', () => csvFile.click());
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone-active'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('drop-zone-active');
-      const files = e.dataTransfer.files;
-      if (files.length > 0) handleCSVUpload(files[0]);
-    });
-    csvFile.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) handleCSVUpload(e.target.files[0]);
-    });
+dropZone.addEventListener('click', () => csvFile.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-zone-active'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone-active'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drop-zone-active');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) handleCSVUpload(files[0]);
+});
+csvFile.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) handleCSVUpload(e.target.files[0]);
+});
 
-    async function handleCSVUpload(file) {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session?.user) return alert('Faça login antes de importar CSV.');
+function toIsoDate(dateStr) {
+  if (!dateStr) return '';
+  const s = String(dateStr).trim().replace(/"/g, '');
 
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const csv = e.target.result;
-          const lines = csv.split('\n');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return '';
+}
 
-          let imported = 0;
-          let skipped = 0;
+function toNumberBR(valueStr) {
+  if (valueStr == null) return NaN;
+  let s = String(valueStr).trim();
 
-          for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
+  s = s.replace(/\s/g, '').replace('R$', '');
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+  else s = s.replace(',', '.');
 
-            const parts = lines[i].split(',');
-            if (parts.length < 3) { skipped++; continue; }
+  s = s.replace(/[^\d.-]/g, '');
+  return parseFloat(s);
+}
 
-            const date = parts[0].trim().replace(/"/g, '');
-            const description = parts[1].trim().replace(/"/g, '');
-            const value = parseFloat(parts[2].trim().replace(/"/g, '').replace(',', '.'));
+async function handleCSVUpload(file) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) return alert('Faça login antes de importar CSV.');
 
-            if (!date || !value || value <= 0) { skipped++; continue; }
+  const reader = new FileReader();
 
-            let category = 'Outros';
-            const desc = description.toLowerCase();
-            if (desc.includes('faculdade') || desc.includes('educacao') || desc.includes('educação')) category = 'Faculdade';
-            else if (desc.includes('van') || desc.includes('transporte')) category = 'Van (Transporte)';
-            else if (desc.includes('combust') || desc.includes('gasolina')) category = 'Combustível';
-            else if (desc.includes('comida') || desc.includes('mercado') || desc.includes('aliment')) category = 'Alimentação';
-            else if (desc.includes('banco') || desc.includes('fatura')) category = 'Fatura do Banco';
-            else if (desc.includes('celular') || desc.includes('telefone')) category = 'Plano de Celular';
-            else if (desc.includes('carro') || desc.includes('empr')) category = 'Empréstimo do Carro';
+  reader.onload = async () => {
+    const text = String(reader.result || '');
+    console.log('first 300 chars:', JSON.stringify(text.slice(0, 300)));
 
-            const { error } = await sb
-              .from('transactions')
-              .insert({ user_id: session.user.id, date, description, category, value, type: 'expense' });
+    Papa.parse(text, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      delimiter: "", // auto-detect
+      beforeFirstChunk: (chunk) =>
+        String(chunk).replace(/^\uFEFF/, '').replace(/^sep=.+\r?\n/i, ''),
+      complete: async (results) => {
+        console.log('meta:', results.meta);
+        console.log('errors:', results.errors?.slice(0, 5));
+        console.log('first row obj:', results.data?.[0]);
 
-            if (error) skipped++;
-            else imported++;
-          }
+        const rows = results.data || [];
+        let imported = 0, skipped = 0;
 
-          csvFile.value = '';
-          document.getElementById('importStatus').innerHTML =
-            `<div class="${imported > 0 ? 'import-success' : 'import-error'}">
-              ${imported > 0 ? `Importado ${imported} transações!` : 'Nenhuma transação válida encontrada'}
-              ${skipped > 0 ? ` (${skipped} ignoradas/erro)` : ''}
-            </div>`;
+        for (const r of rows) {
+          const date = toIsoDate(r["Data"]);
+          const description = String(r["Descrição"] || '').trim();
+          const value = toNumberBR(r["Valor"]);
 
-          setTimeout(() => (document.getElementById('importStatus').innerHTML = ''), 4000);
-          await loadTransactions();
-        } catch (err) {
-          document.getElementById('importStatus').innerHTML =
-            `<div class="import-error">Erro ao processar CSV: ${err.message}</div>`;
+          if (!date || !description || !Number.isFinite(value) || value === 0) { skipped++; continue; }
+
+          const type = value < 0 ? 'expense' : 'income';
+
+          const { error } = await sb.from('transactions').insert({
+            user_id: session.user.id,
+            date,
+            description,
+            category: 'Outros',
+            value: Math.abs(value),
+            type
+          });
+
+          if (error) skipped++;
+          else imported++;
         }
-      };
-      reader.readAsText(file);
-    }
+
+        document.getElementById('importStatus').innerHTML =
+          `<div class="${imported > 0 ? 'import-success' : 'import-error'}">
+            ${imported > 0 ? `✅ Importado ${imported} transações!` : '❌ Nenhuma transação válida encontrada'}
+            ${skipped > 0 ? ` (${skipped} ignoradas/erro)` : ''}
+          </div>`;
+
+        await loadTransactions();
+      }
+    });
+  };
+
+  reader.readAsText(file, 'utf-8'); // lê o arquivo como texto [web:560]
+}
 
     // AUTH events e botões
     document.getElementById('btnLogin').addEventListener('click', async () => {
@@ -732,6 +781,8 @@
     document.getElementById('btnCancel').addEventListener('click', cancelEdit);
 
     document.getElementById('monthSelect').addEventListener('change', updateDashboard);
+    document.getElementById('yearSelect').addEventListener('change', updateDashboard);
+
     document.getElementById('searchBox').addEventListener('input', updateDashboard);
 
     document.getElementById('btnExportJSON').addEventListener('click', exportJSON);
