@@ -10,13 +10,73 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background:#f3f4f6; margin:0; }
+    :root{
+      --bg:#f3f4f6;
+      --panel:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow:rgba(0,0,0,.06);
+
+      --header1:#667eea;
+      --header2:#764ba2;
+
+      --input-bg:#ffffff;
+
+      --btn:#111827;
+      --btnText:#ffffff;
+      --btnSoft:#e5e7eb;
+      --btnSoftText:#111827;
+
+      --successBg:#ecfdf5;
+      --successBorder:#10b981;
+      --successText:#065f46;
+
+      --errorBg:#fef2f2;
+      --errorBorder:#ef4444;
+      --errorText:#7f1d1d;
+    }
+
+    :root[data-theme="dark"]{
+      --bg:#0b1220;
+      --panel:#0f172a;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --shadow:rgba(0,0,0,.35);
+
+      --header1:#111827;
+      --header2:#1f2937;
+
+      --input-bg:#0b1220;
+
+      --btn:#e5e7eb;
+      --btnText:#111827;
+      --btnSoft:#1f2937;
+      --btnSoftText:#e5e7eb;
+
+      --successBg:#064e3b;
+      --successBorder:#10b981;
+      --successText:#d1fae5;
+
+      --errorBg:#450a0a;
+      --errorBorder:#ef4444;
+      --errorText:#fecaca;
+    }
+
+    *{ box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background:var(--bg); margin:0; color:var(--text); }
     .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:18px; border-radius:12px; }
-    .section { background:#fff; border-radius:12px; padding:16px; margin-top:14px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+
+    .header { background: linear-gradient(135deg,var(--header1),var(--header2)); color:#fff; padding:18px; border-radius:12px; }
+    .header h1{ margin:0; }
+    .header p{ margin:0; color: rgba(255,255,255,0.9); }
+
+    .section { background:var(--panel); border-radius:12px; padding:16px; margin-top:14px; box-shadow:0 2px 10px var(--shadow); border:1px solid var(--border); }
     .summary { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
-    .card { padding:14px; border-radius:12px; color:#111827; background:#fff; border:1px solid #e5e7eb; }
-    .card-label { font-size: 13px; color:#6b7280; }
+
+    .card { padding:14px; border-radius:12px; color:var(--text); background:var(--panel); border:1px solid var(--border); }
+    .card-label { font-size: 13px; color:var(--muted); }
     .card-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
     .income { border-left: 6px solid #10b981; }
     .expense { border-left: 6px solid #ef4444; }
@@ -24,16 +84,16 @@
 
     .form-row { display:flex; flex-wrap:wrap; gap: 12px; }
     .form-group { flex: 1; min-width: 180px; }
-    label { display:block; font-size: 12px; color:#374151; margin-bottom:6px; }
-    input, select { width:100%; padding:10px; border-radius:10px; border:1px solid #d1d5db; outline:none; }
+    label { display:block; font-size: 12px; color:var(--text); opacity:0.9; margin-bottom:6px; }
+    input, select { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); outline:none; background:var(--input-bg); color:var(--text); }
     input:focus, select:focus { border-color:#667eea; }
 
     .button-group { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
     button { cursor:pointer; border:0; padding:10px 12px; border-radius:10px; font-weight:600; }
     .btn-add { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
-    .btn-clear { background:#e5e7eb; color:#111827; }
+    .btn-clear { background:var(--btnSoft); color:var(--btnSoftText); }
     .btn-cancel { background:#ef4444; color:#fff; }
-    .btn-export { background:#111827; color:#fff; }
+    .btn-export { background:var(--btn); color:var(--btnText); }
     .btn-warning { background:#f59e0b; color:#111827; }
 
     .month-selector { display:flex; gap:10px; align-items:center; }
@@ -49,45 +109,46 @@
       gap: 10px;
       align-items:center;
       padding:10px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--border);
       border-radius: 10px;
-      background:#fff;
+      background:var(--panel);
     }
-    .transaction-value.income { color:#059669; font-weight:700; }
-    .transaction-value.expense { color:#dc2626; font-weight:700; }
+    .transaction-value.income { color:#10b981; font-weight:700; }
+    .transaction-value.expense { color:#ef4444; font-weight:700; }
     .edit-btn { background:#f59e0b; color:#111827; }
     .delete-btn { background:#ef4444; color:#fff; }
 
     .search-box input { width:100%; }
 
     .stats-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .stat-box { border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
-    .stat-label { color:#6b7280; font-size: 13px; }
+    .stat-box { border:1px solid var(--border); border-radius:12px; padding:12px; background:var(--panel); }
+    .stat-label { color:var(--muted); font-size: 13px; }
     .stat-value { font-size: 18px; font-weight: 700; margin-top:6px; }
 
-    .category-item { display:flex; justify-content:space-between; padding:10px; border:1px solid #e5e7eb; border-radius:10px; margin-top:8px; }
+    .category-item { display:flex; justify-content:space-between; padding:10px; border:1px solid var(--border); border-radius:10px; margin-top:8px; background:var(--panel); }
     .save-indicator {
       position: fixed; right: 16px; bottom: 16px;
-      background:#111827; color:#fff; padding:10px 12px; border-radius:10px;
+      background:var(--btn); color:var(--btnText); padding:10px 12px; border-radius:10px;
+      border: 1px solid var(--border);
     }
 
     .drop-zone-active { background:#eef2ff !important; border-color:#4f46e5 !important; }
 
-    .import-success { background:#ecfdf5; border:1px solid #10b981; color:#065f46; padding:10px; border-radius:10px; }
-    .import-error { background:#fef2f2; border:1px solid #ef4444; color:#7f1d1d; padding:10px; border-radius:10px; }
+    .import-success { background:var(--successBg); border:1px solid var(--successBorder); color:var(--successText); padding:10px; border-radius:10px; }
+    .import-error { background:var(--errorBg); border:1px solid var(--errorBorder); color:var(--errorText); padding:10px; border-radius:10px; }
 
     .rule-item{
       display:grid;
-      grid-template-columns: 1fr 140px 120px 120px 120px;
+      grid-template-columns: 1fr 120px 120px 120px 120px;
       gap:10px;
       align-items:center;
       padding:10px;
-      border:1px solid #e5e7eb;
+      border:1px solid var(--border);
       border-radius:10px;
-      background:#fff;
+      background:var(--panel);
       margin-top:8px;
     }
-    .muted { color:#6b7280; font-size:12px; }
+    .muted { color:var(--muted); font-size:12px; }
 
     @media (max-width: 980px) {
       .content { grid-template-columns: 1fr; }
@@ -100,9 +161,15 @@
 
 <body>
   <div class="container">
+
     <div class="header">
-      <h1>Controle de Gastos 2026</h1>
-      <p style="color: rgba(255,255,255,0.9); margin:0;">Acompanhe suas receitas, despesas e economias</p>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div>
+          <h1>Controle de Gastos 2026</h1>
+          <p>Acompanhe suas receitas, despesas e economias</p>
+        </div>
+        <button id="btnTheme" type="button" class="btn-clear" style="min-width:140px;">Modo escuro</button>
+      </div>
     </div>
 
     <div class="section" id="authBox" style="max-width:520px;margin:14px auto;">
@@ -122,7 +189,7 @@
         <button class="btn-clear" id="btnSignup" type="button">Criar conta</button>
         <button class="btn-clear" id="btnLogout" type="button" style="display:none;">Sair</button>
       </div>
-      <div id="authStatus" style="margin-top:10px;color:#6b7280;font-size:13px;"></div>
+      <div id="authStatus" style="margin-top:10px;color:var(--muted);font-size:13px;"></div>
     </div>
 
     <div class="section month-selector">
@@ -157,10 +224,9 @@
       </div>
     </div>
 
-    <!-- RECORRÊNCIAS -->
     <div class="section">
-      <h2>Recorrências (Empréstimos/Mensalidades)</h2>
-      <p class="muted">Crie uma regra mensal e o sistema gera automaticamente os lançamentos via RPC.</p>
+      <h2>Recorrências (mensal)</h2>
+      <p class="muted">Cadastre aqui mensalidades (ex: Empréstimo do carro) e clique “Gerar agora”.</p>
 
       <div class="form-row">
         <div class="form-group">
@@ -266,11 +332,11 @@
 
     <div class="section">
       <h2>Importar CSV/OFX</h2>
-      <div id="dropZone" style="border: 2px dashed #667eea; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; background: #f8f9ff;">
+      <div id="dropZone" style="border: 2px dashed #667eea; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; background: transparent;">
         <p style="font-size: 16px; margin: 8px 0;">Arraste o arquivo aqui ou clique</p>
-        <!-- Dica iPhone: se não der pra selecionar OFX, remova o accept -->
-        <input type="file" id="csvFile" accept=".csv,.ofx" style="display:none;" />
-        <p style="color:#6b7280; font-size: 12px; margin:0;">CSV: Data/Descrição/Valor | OFX: extrai STMTTRN</p>
+        <!-- iPhone: deixar sem accept evita esconder .ofx -->
+        <input type="file" id="csvFile" style="display:none;" />
+        <p style="color:var(--muted); font-size: 12px; margin:0;">CSV: Data/Descrição/Valor | OFX: extrai STMTTRN</p>
       </div>
       <div id="importStatus" style="margin-top: 12px;"></div>
     </div>
@@ -334,6 +400,9 @@
   </div>
 
   <script>
+    /* =========================
+       SUPABASE
+    ========================= */
     const SUPABASE_URL = "https://myimvdbtzswzntpwyaxv.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15aW12ZGJ0enN3em50cHd5YXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MDAwMTksImV4cCI6MjA4NDE3NjAxOX0.VA4DGrvp4Z0EtwJk2zceC6ncze_QZs0QaClLsXM1lXE";
 
@@ -347,6 +416,33 @@
     let categoryChart = null;
     let editingId = null;
 
+    /* =========================
+       THEME (dark/light)
+    ========================= */
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme); // persistência [web:183]
+      const btn = document.getElementById('btnTheme');
+      if (btn) btn.textContent = (theme === 'dark') ? 'Modo claro' : 'Modo escuro';
+      updateDashboard(); // redesenha charts com novas cores [web:193]
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      applyTheme(theme);
+
+      const btn = document.getElementById('btnTheme');
+      if (btn) btn.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'light';
+        applyTheme(cur === 'dark' ? 'light' : 'dark');
+      });
+    }
+
+    /* =========================
+       HELPERS
+    ========================= */
     function setAuthStatus(msg) {
       const el = document.getElementById('authStatus');
       if (el) el.textContent = msg || '';
@@ -367,7 +463,7 @@
       indicator.className = 'save-indicator';
       indicator.textContent = message;
       document.body.appendChild(indicator);
-      setTimeout(() => indicator.remove(), 2000);
+      setTimeout(() => indicator.remove(), 2200);
     }
 
     function clearForm() {
@@ -389,7 +485,7 @@
     }
 
     /* =========================
-       RECORRÊNCIA (RPC)
+       RPC recorrência
     ========================= */
     async function ensureRecurringGenerated(showAlwaysToast = false) {
       const { data: { session } } = await sb.auth.getSession();
@@ -417,6 +513,9 @@
       else if ((data ?? 0) > 0) showSaveIndicator(`Gerado ${data} lançamentos automáticos`);
     }
 
+    /* =========================
+       RECORRING RULES CRUD
+    ========================= */
     async function loadRules() {
       const { data: { session } } = await sb.auth.getSession();
       if (!session?.user) { document.getElementById('rulesList').innerHTML = ''; return; }
@@ -503,19 +602,16 @@
       const start_date = document.getElementById('ruleStart').value;
       const end_date = document.getElementById('ruleEnd').value || null;
 
-      if (!description || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(day_of_month) || day_of_month < 1 || day_of_month > 31 || !start_date) {
-        return alert('Preencha a recorrência corretamente.');
-      }
+      if (!description) return alert('Informe a descrição.');
+      if (!Number.isFinite(amount) || amount <= 0) return alert('Informe um valor > 0.');
+      if (!Number.isFinite(day_of_month) || day_of_month < 1 || day_of_month > 31) return alert('Dia do mês inválido (1-31).');
+      if (!start_date) return alert('Informe a data de início.');
 
       const payload = {
         user_id: session.user.id,
-        description,
-        category,
-        type,
-        amount,
-        day_of_month,
-        start_date,
-        end_date,
+        description, category, type,
+        amount, day_of_month,
+        start_date, end_date,
         active: true,
       };
 
@@ -526,7 +622,6 @@
       clearRuleForm();
       await loadRules();
 
-      // opcional: já gera na hora
       await ensureRecurringGenerated(true);
       await loadTransactions();
     }
@@ -630,6 +725,10 @@
       const catCanvas = document.getElementById('categoryChart');
       if (!monthCanvas || !catCanvas) return;
 
+      const theme = document.documentElement.getAttribute('data-theme') || 'light';
+      const gridColor = theme === 'dark' ? 'rgba(148,163,184,0.25)' : 'rgba(17,24,39,0.10)';
+      const tickColor = theme === 'dark' ? '#e5e7eb' : '#111827';
+
       const monthlyData = {};
       for (let i = 1; i <= 12; i++) {
         const monthStr = String(i).padStart(2, '0');
@@ -654,7 +753,15 @@
             { label: 'Economia', data: savingsData, backgroundColor: '#10b981', borderRadius: 8 }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true, labels: { color: tickColor } } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } },
+            x: { ticks: { color: tickColor }, grid: { color: gridColor } }
+          }
+        }
       });
 
       const categoryData = {};
@@ -674,7 +781,11 @@
             backgroundColor: ['#667eea','#764ba2','#ef4444','#10b981','#f59e0b','#06b6d4','#ec4899','#8b5cf6','#14b8a6']
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: tickColor } } }
+        }
       });
     }
 
@@ -700,7 +811,7 @@
       `).join('');
 
       const listEl = document.getElementById('transactionsList');
-      listEl.innerHTML = html || '<p style="text-align:center;color:#6b7280;">Nenhuma transação registrada</p>';
+      listEl.innerHTML = html || '<p style="text-align:center;color:var(--muted);">Nenhuma transação registrada</p>';
 
       listEl.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editTransaction(btn.getAttribute('data-edit'))));
       listEl.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteTransaction(btn.getAttribute('data-del'))));
@@ -738,7 +849,7 @@
           </div>
         `).join('');
 
-      document.getElementById('categoryAnalysis').innerHTML = html || '<p style="text-align:center;color:#6b7280;">Sem despesas neste período</p>';
+      document.getElementById('categoryAnalysis').innerHTML = html || '<p style="text-align:center;color:var(--muted);">Sem despesas neste período</p>';
     }
 
     async function addOrEditTransaction() {
@@ -748,7 +859,7 @@
       const value = parseFloat(document.getElementById('value').value);
       const type = document.getElementById('type').value;
 
-      if (!date || !description || !value || value <= 0) return alert('Preencha todos os campos corretamente!');
+      if (!date || !description || !Number.isFinite(value) || value <= 0) return alert('Preencha todos os campos corretamente!');
 
       const { data: { session } } = await sb.auth.getSession();
       if (!session?.user) return alert('Faça login antes de salvar.');
@@ -996,21 +1107,17 @@
     }
 
     /* =========================
-       AUTH + EVENTS
+       EVENTS
     ========================= */
     document.getElementById('btnLogin').addEventListener('click', async () => {
-      try {
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPass').value;
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPass').value;
 
-        setAuthStatus('Entrando...');
-        const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) return setAuthStatus(error.message);
+      setAuthStatus('Entrando...');
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) return setAuthStatus(error.message);
 
-        await refreshAuthUI();
-      } catch (e) {
-        setAuthStatus(e.message || String(e));
-      }
+      await refreshAuthUI();
     });
 
     document.getElementById('btnSignup').addEventListener('click', async () => {
@@ -1053,6 +1160,7 @@
     /* INIT */
     clearForm();
     clearRuleForm();
+    initTheme();
     updateDashboard();
     refreshAuthUI();
   </script>
