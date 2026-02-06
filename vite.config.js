@@ -9,9 +9,9 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/Gestor-de-Gastos/',
+    base: mode === 'production' ? '/Gestor-de-Gastos/' : '/',
     server: {
-      port: 3000,
+      port: 5500,
       host: '0.0.0.0',
     },
     plugins: [react()],
