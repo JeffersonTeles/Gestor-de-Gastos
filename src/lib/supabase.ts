@@ -13,8 +13,7 @@ if (!supabaseUrl || !supabaseKey) {
     console.error('CRITICAL: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are missing in .env');
 }
 
-// Fallback to avoid crash on startup, allowing ErrorBoundary to show friendly message later if needed
-export const supabase = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseKey || 'placeholder'
-);
+// Fallback to avoid crash on startup
+export const supabase = (supabaseUrl && supabaseKey)
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;

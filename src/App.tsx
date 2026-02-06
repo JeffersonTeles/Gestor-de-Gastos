@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { X, Loader2, CloudOff, UploadCloud, AlertTriangle } from 'lucide-react';
+import { X, Loader2, CloudOff, UploadCloud, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Transaction } from './types';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -16,6 +16,32 @@ import { MobileNav } from './components/MobileNav';
 import { useTransactions } from './hooks/useTransactions';
 
 const App: React.FC = () => {
+  // Check if Supabase is configured
+  if (!supabase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950 p-4">
+        <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl p-8 md:p-12 text-center border border-rose-100 dark:border-rose-900/30">
+          <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/20 rounded-full flex items-center justify-center mx-auto mb-6 text-rose-600 dark:text-rose-400">
+            <CloudOff size={32} />
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-4">Configuração Necessária</h1>
+          <p className="text-slate-600 dark:text-zinc-400 mb-6">
+            O aplicativo não encontrou as chaves do Supabase. Se você está no GitHub Pages, isso é normal!
+          </p>
+          <div className="bg-slate-100 dark:bg-zinc-800/50 p-4 rounded-xl text-left text-sm text-slate-700 dark:text-zinc-300 mb-6 overflow-hidden">
+            <p className="font-bold mb-2">Como resolver:</p>
+            <ol className="list-decimal pl-4 space-y-1">
+              <li>Vá no seu repositório GitHub</li>
+              <li>Settings &gt; Secrets and variables &gt; Actions</li>
+              <li>Adicione: <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code></li>
+              <li>Rode o deploy novamente</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<any>(null);
