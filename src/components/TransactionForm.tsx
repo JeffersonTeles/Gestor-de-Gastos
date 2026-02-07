@@ -23,7 +23,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
     e.preventDefault();
     setError('');
 
-    if (!formData.description || !formData.value || formData.value <= 0) {
+    if (!formData.description?.trim() || !formData.value || formData.value <= 0) {
       setError('Por favor, preencha a descrição e um valor válido.');
       return;
     }
@@ -45,10 +45,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
         </div>
       )}
 
-      <div className="flex gap-2 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl">
+      <div className="flex gap-2 p-1 bg-slate-100 dark:bg-zinc-800 rounded-xl" role="group" aria-label="Tipo de transação">
         <button
           type="button"
           onClick={() => setFormData({ ...formData, type: 'expense' })}
+          aria-pressed={formData.type === 'expense'}
           className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${formData.type === 'expense' ? 'bg-white dark:bg-zinc-700 text-rose-600 dark:text-rose-400 shadow-sm' : 'text-slate-500 dark:text-zinc-500'
             }`}
         >
@@ -57,6 +58,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
         <button
           type="button"
           onClick={() => setFormData({ ...formData, type: 'income' })}
+          aria-pressed={formData.type === 'income'}
           className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${formData.type === 'income' ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-zinc-500'
             }`}
         >
@@ -65,43 +67,51 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Descrição</label>
+        <label htmlFor="transaction-description" className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Descrição</label>
         <input
+          id="transaction-description"
           type="text"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           placeholder="Ex: Aluguel, Supermercado, Salário..."
           className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100"
           maxLength={50}
+          required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Valor (R$)</label>
+          <label htmlFor="transaction-value" className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Valor (R$)</label>
           <input
+            id="transaction-value"
             type="number"
             step="0.01"
+            min="0.01"
             value={formData.value || ''}
             onChange={handleValueChange}
             placeholder="0,00"
             className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100"
+            required
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Data</label>
+          <label htmlFor="transaction-date" className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Data</label>
           <input
+            id="transaction-date"
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100"
+            required
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Categoria</label>
+        <label htmlFor="transaction-category" className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Categoria</label>
         <select
+          id="transaction-category"
           value={formData.category}
           onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
           className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100 cursor-pointer"

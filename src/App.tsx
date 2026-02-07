@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { X, Loader2, CloudOff, UploadCloud, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Transaction } from './types';
+import { Transaction, AuthSession } from './types';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
 import TransactionForm from './components/TransactionForm';
@@ -9,6 +9,7 @@ import AICounselor from './components/AICounselor';
 import { LoanDashboard } from './components/LoanDashboard';
 import { Auth } from './components/Auth';
 import { FileImporter } from './components/FileImporter';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { supabase } from './lib/supabase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -44,7 +45,7 @@ const App: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -56,6 +57,8 @@ const App: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [signOutConfirm, setSignOutConfirm] = useState(false);
 
   const [dateFilter, setDateFilter] = useState({
     start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -94,14 +97,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
+      setSession(currentSession as AuthSession | null);
       setLoadingObj(false);
     };
 
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setSession(session as AuthSession | null);
       if (!session) {
         navigate('/');
       }
@@ -115,9 +118,15 @@ const App: React.FC = () => {
     setEditingTransaction(null);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    if (!confirm('Deseja excluir permanentemente este registro?')) return;
-    await deleteTransaction(id);
+  const handleDeleteTransaction = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmId) {
+      await deleteTransaction(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
   };
 
   const handleEdit = (transaction: Transaction) => setEditingTransaction(transaction);
@@ -145,16 +154,20 @@ const App: React.FC = () => {
     return { totalIncome: income, totalExpenses: expenses, totalBalance: income - expenses };
   }, [filteredTransactions]);
 
-  const handleSignOut = async () => {
-    if (confirm('Deseja realmente sair da conta?')) {
-      try {
-        await supabase.auth.signOut();
-        setSession(null);
-        localStorage.clear();
-        navigate('/');
-      } catch (err) {
-        console.error("Erro ao sair:", err);
-      }
+  const handleSignOut = () => {
+    setSignOutConfirm(true);
+  };
+
+  const confirmSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setSession(null);
+      localStorage.clear();
+      navigate('/');
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+    } finally {
+      setSignOutConfirm(false);
     }
   };
 
@@ -237,11 +250,11 @@ const App: React.FC = () => {
       </main>
 
       {(isFormOpen || editingTransaction) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" role="dialog" aria-modal="true" aria-labelledby="transaction-form-title">
           <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border dark:border-zinc-800">
             <div className="flex items-center justify-between p-8 border-b dark:border-zinc-800">
-              <h3 className="text-2xl font-black tracking-tight">{editingTransaction ? 'Editar Registro' : 'Novo Registro'}</h3>
-              <button onClick={() => { setIsFormOpen(false); setEditingTransaction(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><X size={24} /></button>
+              <h3 id="transaction-form-title" className="text-2xl font-black tracking-tight">{editingTransaction ? 'Editar Registro' : 'Novo Registro'}</h3>
+              <button onClick={() => { setIsFormOpen(false); setEditingTransaction(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition-colors" aria-label="Fechar formulário"><X size={24} /></button>
             </div>
             <div className="p-8 max-h-[80vh] overflow-y-auto">
               <TransactionForm
@@ -271,6 +284,28 @@ const App: React.FC = () => {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title="Excluir Transação"
+        message="Deseja excluir permanentemente este registro? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        danger={true}
+      />
+
+      <ConfirmDialog
+        isOpen={signOutConfirm}
+        title="Sair da Conta"
+        message="Deseja realmente sair da sua conta?"
+        confirmText="Sair"
+        cancelText="Cancelar"
+        onConfirm={confirmSignOut}
+        onCancel={() => setSignOutConfirm(false)}
+        danger={false}
+      />
     </div>
   );
 };

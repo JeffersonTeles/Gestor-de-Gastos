@@ -11,16 +11,24 @@ interface AICounselorProps {
 const AICounselor: React.FC<AICounselorProps> = ({ transactions }) => {
   const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerateAdvice = async () => {
+    setError(null);
     if (transactions.length === 0) {
-      alert("Adicione algumas transações primeiro para que a IA possa analisar seu perfil!");
+      setError("Adicione algumas transações primeiro para que a IA possa analisar seu perfil!");
       return;
     }
     setLoading(true);
-    const result = await getFinancialAdvice(transactions);
-    setAdvice(result);
-    setLoading(false);
+    try {
+      const result = await getFinancialAdvice(transactions);
+      setAdvice(result);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao gerar análise';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +65,18 @@ const AICounselor: React.FC<AICounselorProps> = ({ transactions }) => {
           </button>
         </div>
       </div>
+
+      {error && !loading && (
+        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 p-6 rounded-2xl flex items-start gap-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="w-10 h-10 bg-rose-100 dark:bg-rose-500/20 rounded-full flex items-center justify-center shrink-0">
+            <Sparkles size={20} className="text-rose-600 dark:text-rose-400" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-rose-700 dark:text-rose-400 mb-1">Aviso</h4>
+            <p className="text-sm text-rose-600 dark:text-rose-400/80">{error}</p>
+          </div>
+        </div>
+      )}
 
       {advice && !loading && (
         <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-sm border border-slate-100 dark:border-zinc-800 animate-in fade-in slide-in-from-bottom-8 duration-700 transition-colors">

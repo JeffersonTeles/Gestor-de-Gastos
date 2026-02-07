@@ -32,3 +32,11 @@ export interface FinancialSummary {
   totalIncome: number;
   totalExpenses: number;
 }
+
+export interface AuthSession {
+  user: {
+    id: string;
+    email?: string;
+  };
+  access_token?: string;
+}
