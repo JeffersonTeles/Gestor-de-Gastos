@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Transaction } from '../types';
+import type { Session } from '@supabase/supabase-js';
 
-export const useTransactions = (session: any) => {
+export const useTransactions = (session: Session | null) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSynced, setIsSynced] = useState(true);
@@ -38,9 +39,9 @@ export const useTransactions = (session: any) => {
                 localStorage.setItem(`gestor_mesmo_cache_${userId}`, JSON.stringify(data));
                 setIsSynced(true);
             }
-        } catch (err: any) {
+        } catch (err) {
             console.error("Erro ao buscar dados do Supabase:", err);
-            setDbError(`Falha na conexão: ${err.message}`);
+            setDbError(`Falha na conexão: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
             setIsSynced(false);
         } finally {
             setLoading(false);
@@ -85,9 +86,9 @@ export const useTransactions = (session: any) => {
 
             setIsSynced(true);
             await fetchData(session.user.id);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Erro na sincronização:", err);
-            setDbError(`Erro ao sincronizar: ${err.message}`);
+            setDbError(`Erro ao sincronizar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
         } finally {
             setIsRefreshing(false);
         }
@@ -121,9 +122,9 @@ export const useTransactions = (session: any) => {
                 const updatedList = [data[0], ...transactions.filter(t => t.id !== tempId)];
                 localStorage.setItem(`gestor_mesmo_cache_${session.user.id}`, JSON.stringify(updatedList));
             }
-        } catch (err: any) {
-            console.error("Erro ao salvar no banco:", err.message);
-            setDbError(`Erro ao salvar: ${err.message}`);
+        } catch (err) {
+            console.error("Erro ao salvar no banco:", err);
+            setDbError(`Erro ao salvar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
         }
     };
 
@@ -143,9 +144,9 @@ export const useTransactions = (session: any) => {
 
             if (error) throw error;
             setIsSynced(true);
-        } catch (err: any) {
-            console.error("Erro ao atualizar:", err.message);
-            setDbError(`Erro ao atualizar: ${err.message}`);
+        } catch (err) {
+            console.error("Erro ao atualizar:", err);
+            setDbError(`Erro ao atualizar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
         }
     };
 
@@ -165,10 +166,10 @@ export const useTransactions = (session: any) => {
 
             if (error) throw error;
             setIsSynced(true);
-        } catch (err: any) {
-            console.error("Erro ao deletar:", err.message);
+        } catch (err) {
+            console.error("Erro ao deletar:", err);
             setTransactions(previousTransactions);
-            setDbError(`Erro ao deletar: ${err.message}`);
+            setDbError(`Erro ao deletar: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
         }
     };
 

@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { Transaction, TransactionType, Category } from '../types';
-import { Save, AlertCircle } from 'lucide-react';
+import { Save, AlertCircle, Loader2 } from 'lucide-react';
 
 interface TransactionFormProps {
-  onSave: (transaction: Partial<Transaction>) => void;
+  onSave: (transaction: Partial<Transaction>) => Promise<void> | void;
   initialData?: Transaction;
 }
 
@@ -18,8 +18,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
   });
 
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -28,7 +29,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
       return;
     }
 
-    onSave(formData);
+    setIsSubmitting(true);
+    try {
+      await onSave(formData);
+    } catch (err) {
+      setError('Erro ao salvar transação. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,10 +122,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
 
       <button
         type="submit"
-        className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-100 dark:shadow-none transition-all mt-4 active:scale-95"
+        disabled={isSubmitting}
+        className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-100 dark:shadow-none transition-all mt-4 active:scale-95 disabled:active:scale-100"
       >
-        <Save size={20} />
-        {initialData ? 'Salvar Alterações' : 'Adicionar Transação'}
+        {isSubmitting ? (
+          <>
+            <Loader2 size={20} className="animate-spin" />
+            Salvando...
+          </>
+        ) : (
+          <>
+            <Save size={20} />
+            {initialData ? 'Salvar Alterações' : 'Adicionar Transação'}
+          </>
+        )}
       </button>
     </form>
   );

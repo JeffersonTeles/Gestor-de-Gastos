@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { X, Loader2, CloudOff, UploadCloud, AlertTriangle, RefreshCw } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
 import { Transaction } from './types';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -44,7 +45,7 @@ const App: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -150,7 +151,10 @@ const App: React.FC = () => {
       try {
         await supabase.auth.signOut();
         setSession(null);
-        localStorage.clear();
+        // Clear only transaction cache, preserve theme preference
+        if (session?.user?.id) {
+          localStorage.removeItem(`gestor_mesmo_cache_${session.user.id}`);
+        }
         navigate('/');
       } catch (err) {
         console.error("Erro ao sair:", err);
