@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sparkles, Loader2, BrainCircuit, Lightbulb, Target } from 'lucide-react';
+import { Sparkles, Loader2, BrainCircuit, Lightbulb, Target, AlertTriangle } from 'lucide-react';
 import { Transaction } from '../types';
 import { getFinancialAdvice } from '../services/geminiService';
 
@@ -11,10 +11,12 @@ interface AICounselorProps {
 const AICounselor: React.FC<AICounselorProps> = ({ transactions }) => {
   const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   const handleGenerateAdvice = async () => {
     if (transactions.length === 0) {
-      alert("Adicione algumas transações primeiro para que a IA possa analisar seu perfil!");
+      setShowWarning(true);
+      setTimeout(() => setShowWarning(false), 3000);
       return;
     }
     setLoading(true);
@@ -25,6 +27,16 @@ const AICounselor: React.FC<AICounselorProps> = ({ transactions }) => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12 transition-colors">
+      {/* Warning message when no transactions */}
+      {showWarning && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-900/50 text-yellow-800 dark:text-yellow-200 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <AlertTriangle size={24} className="flex-shrink-0" />
+          <p className="font-medium">
+            Adicione algumas transações primeiro para que a IA possa analisar seu perfil!
+          </p>
+        </div>
+      )}
+      
       <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 dark:from-indigo-900 dark:to-zinc-900 p-8 md:p-12 rounded-[2rem] text-white shadow-xl shadow-indigo-200 dark:shadow-none border dark:border-zinc-800">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
