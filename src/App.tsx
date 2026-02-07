@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { X, Loader2, CloudOff, UploadCloud, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Transaction } from './types';
+import { Transaction, AuthSession } from './types';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
 import TransactionForm from './components/TransactionForm';
@@ -44,7 +44,7 @@ const App: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -94,14 +94,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setSession(currentSession);
+      setSession(currentSession as AuthSession | null);
       setLoadingObj(false);
     };
 
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setSession(session as AuthSession | null);
       if (!session) {
         navigate('/');
       }
@@ -237,11 +237,11 @@ const App: React.FC = () => {
       </main>
 
       {(isFormOpen || editingTransaction) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" role="dialog" aria-modal="true" aria-labelledby="transaction-form-title">
           <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden border dark:border-zinc-800">
             <div className="flex items-center justify-between p-8 border-b dark:border-zinc-800">
-              <h3 className="text-2xl font-black tracking-tight">{editingTransaction ? 'Editar Registro' : 'Novo Registro'}</h3>
-              <button onClick={() => { setIsFormOpen(false); setEditingTransaction(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition-colors"><X size={24} /></button>
+              <h3 id="transaction-form-title" className="text-2xl font-black tracking-tight">{editingTransaction ? 'Editar Registro' : 'Novo Registro'}</h3>
+              <button onClick={() => { setIsFormOpen(false); setEditingTransaction(null); }} className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition-colors" aria-label="Fechar formulário"><X size={24} /></button>
             </div>
             <div className="p-8 max-h-[80vh] overflow-y-auto">
               <TransactionForm

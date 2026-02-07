@@ -130,7 +130,9 @@ export const FileImporter: React.FC<FileImporterProps> = ({ onClose, onImport })
         } else {
           date = new Date(dPart).toISOString().split('T')[0];
         }
-      } catch (e) { }
+      } catch (e) {
+        console.warn(`Não foi possível converter a data "${parts[dateIdx]}", usando data atual como fallback`);
+      }
 
       const description = parts[descIdx] || 'Importado CSV';
 
