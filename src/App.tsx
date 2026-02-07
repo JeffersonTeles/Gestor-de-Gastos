@@ -9,6 +9,7 @@ import AICounselor from './components/AICounselor';
 import { LoanDashboard } from './components/LoanDashboard';
 import { Auth } from './components/Auth';
 import { FileImporter } from './components/FileImporter';
+import { ConfirmDialog } from './components/ConfirmDialog';
 import { supabase } from './lib/supabase';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -56,6 +57,8 @@ const App: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [signOutConfirm, setSignOutConfirm] = useState(false);
 
   const [dateFilter, setDateFilter] = useState({
     start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -115,9 +118,15 @@ const App: React.FC = () => {
     setEditingTransaction(null);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    if (!confirm('Deseja excluir permanentemente este registro?')) return;
-    await deleteTransaction(id);
+  const handleDeleteTransaction = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmId) {
+      await deleteTransaction(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
   };
 
   const handleEdit = (transaction: Transaction) => setEditingTransaction(transaction);
@@ -145,16 +154,20 @@ const App: React.FC = () => {
     return { totalIncome: income, totalExpenses: expenses, totalBalance: income - expenses };
   }, [filteredTransactions]);
 
-  const handleSignOut = async () => {
-    if (confirm('Deseja realmente sair da conta?')) {
-      try {
-        await supabase.auth.signOut();
-        setSession(null);
-        localStorage.clear();
-        navigate('/');
-      } catch (err) {
-        console.error("Erro ao sair:", err);
-      }
+  const handleSignOut = () => {
+    setSignOutConfirm(true);
+  };
+
+  const confirmSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setSession(null);
+      localStorage.clear();
+      navigate('/');
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+    } finally {
+      setSignOutConfirm(false);
     }
   };
 
@@ -271,6 +284,28 @@ const App: React.FC = () => {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        title="Excluir Transação"
+        message="Deseja excluir permanentemente este registro? Esta ação não pode ser desfeita."
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmId(null)}
+        danger={true}
+      />
+
+      <ConfirmDialog
+        isOpen={signOutConfirm}
+        title="Sair da Conta"
+        message="Deseja realmente sair da sua conta?"
+        confirmText="Sair"
+        cancelText="Cancelar"
+        onConfirm={confirmSignOut}
+        onCancel={() => setSignOutConfirm(false)}
+        danger={false}
+      />
     </div>
   );
 };
