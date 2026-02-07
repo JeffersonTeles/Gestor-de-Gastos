@@ -34,7 +34,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                     <Wallet size={24} aria-hidden="true" />
                 </button>
-                <h1 className="font-black text-2xl tracking-tighter cursor-pointer" onClick={() => onNavigate('/dashboard')}>Gestor de Gastos</h1>
+                <button 
+                    className="font-black text-2xl tracking-tighter text-left" 
+                    onClick={() => onNavigate('/dashboard')}
+                    aria-label="Ir para página inicial"
+                >
+                    Gestor de Gastos
+                </button>
             </div>
 
             <nav className="flex-1 space-y-3" aria-label="Menu principal">

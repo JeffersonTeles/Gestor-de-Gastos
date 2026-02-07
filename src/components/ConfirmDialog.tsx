@@ -29,7 +29,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border dark:border-zinc-800 animate-in zoom-in-95 duration-300">
         <div className="p-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${danger ? 'bg-rose-100 dark:bg-rose-500/20' : 'bg-indigo-100 dark:bg-indigo-500/20'}`}>
-            <AlertTriangle size={24} className={danger ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'} />
+            <AlertTriangle size={24} className={danger ? 'text-rose-600 dark:text-rose-400' : 'text-indigo-600 dark:text-indigo-400'} aria-hidden="true" />
           </div>
           <h3 id="confirm-dialog-title" className="text-xl font-bold text-center mb-2 text-slate-900 dark:text-white">{title}</h3>
           <p className="text-center text-slate-600 dark:text-zinc-400 text-sm">{message}</p>
