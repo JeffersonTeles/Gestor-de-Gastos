@@ -1,9 +1,9 @@
 
+import { ArrowDownRight, ArrowUpRight, TrendingUp, Wallet } from 'lucide-react';
 import React, { useMemo } from 'react';
-import { Transaction, FinancialSummary } from '../types';
-import { Wallet, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Bar } from 'recharts';
+import { Area, Bar, CartesianGrid, Cell, ComposedChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useData } from '../contexts/DataContext';
+import { FinancialSummary } from '../types';
 
 const COLORS = ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 

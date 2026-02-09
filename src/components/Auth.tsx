@@ -41,7 +41,7 @@ export const Auth: React.FC = () => {
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 dark:shadow-none mb-6">
             <Wallet size={32} />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">Gestor Mesmo</h1>
+          <h1 className="text-3xl font-black tracking-tight text-slate-800 dark:text-white">Gestor de Gastos</h1>
           <p className="text-slate-500 dark:text-zinc-400 mt-2 font-medium">
             {isSignUp ? 'Crie sua conta gratuita' : 'Acesse seu painel financeiro'}
           </p>
