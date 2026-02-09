@@ -1,9 +1,8 @@
 
+import { BrainCircuit, Lightbulb, Loader2, Sparkles, Target } from 'lucide-react';
 import React, { useState } from 'react';
-import { Sparkles, Loader2, BrainCircuit, Lightbulb, Target } from 'lucide-react';
-import { Transaction } from '../types';
-import { getFinancialAdvice } from '../services/geminiService';
 import { useData } from '../contexts/DataContext';
+import { getFinancialAdvice } from '../services/geminiService';
 
 const AICounselor: React.FC = () => {
   const { transactions } = useData();
