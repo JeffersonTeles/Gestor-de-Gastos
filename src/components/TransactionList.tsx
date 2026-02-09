@@ -1,5 +1,5 @@
 
-import { ArrowDownRight, ArrowUpRight, Edit3, Search, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Edit3, Search, Trash2 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Category, TransactionType } from '../types';
@@ -191,38 +191,6 @@ const TransactionList: React.FC = () => {
           <p className="text-slate-500 dark:text-zinc-500 italic">Nenhuma transação encontrada.</p>
         </div>
       )}
-    </div>
-  );
-};
-
-export default TransactionList;
-                        <button
-                          onClick={() => {/* TODO: Implementar edição */}}
-                          className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-all"
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                        <button
-                          onClick={() => deleteTransaction(transaction.id)}
-                          className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-400 dark:text-zinc-600 italic">
-                    Nenhuma transação encontrada.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 };
