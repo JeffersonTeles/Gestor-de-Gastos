@@ -2,14 +2,10 @@
 import React, { useState, useMemo } from 'react';
 import { Transaction, TransactionType, Category } from '../types';
 import { Search, Trash2, Edit3, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
 
-interface TransactionListProps {
-  transactions: Transaction[];
-  onDelete: (id: string) => void;
-  onEdit: (t: Transaction) => void;
-}
-
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, onDelete, onEdit }) => {
+const TransactionList: React.FC = () => {
+  const { transactions, deleteTransaction } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | TransactionType>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -103,13 +99,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, onDelet
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => onEdit(transaction)}
+                          onClick={() => {/* TODO: Implementar edição */}}
                           className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-all"
                         >
                           <Edit3 size={16} />
                         </button>
                         <button
-                          onClick={() => onDelete(transaction.id)}
+                          onClick={() => deleteTransaction(transaction.id)}
                           className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
                         >
                           <Trash2 size={16} />

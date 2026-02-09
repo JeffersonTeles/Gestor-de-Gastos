@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import { Sparkles, Loader2, BrainCircuit, Lightbulb, Target } from 'lucide-react';
 import { Transaction } from '../types';
 import { getFinancialAdvice } from '../services/geminiService';
+import { useData } from '../contexts/DataContext';
 
-interface AICounselorProps {
-  transactions: Transaction[];
-}
-
-const AICounselor: React.FC<AICounselorProps> = ({ transactions }) => {
+const AICounselor: React.FC = () => {
+  const { transactions } = useData();
   const [advice, setAdvice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

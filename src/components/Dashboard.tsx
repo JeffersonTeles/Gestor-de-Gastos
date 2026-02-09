@@ -3,17 +3,22 @@ import React, { useMemo } from 'react';
 import { Transaction, FinancialSummary } from '../types';
 import { Wallet, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Bar } from 'recharts';
-
-interface DashboardProps {
-  transactions: Transaction[];
-  summary: FinancialSummary;
-  onEdit: (t: Transaction) => void;
-  onDelete: (id: string) => void;
-}
+import { useData } from '../contexts/DataContext';
 
 const COLORS = ['#6366f1', '#10b981', '#f43f5e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
-const Dashboard: React.FC<DashboardProps> = ({ transactions, summary }) => {
+const Dashboard: React.FC = () => {
+  const { transactions } = useData();
+
+  const summary: FinancialSummary = useMemo(() => {
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
+    const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.value, 0);
+    return {
+      totalIncome,
+      totalExpenses,
+      totalBalance: totalIncome - totalExpenses,
+    };
+  }, [transactions]);
   const timeData = useMemo(() => {
     const sorted = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const last30Days: Record<string, { date: string; receitas: number; despesas: number }> = {};
