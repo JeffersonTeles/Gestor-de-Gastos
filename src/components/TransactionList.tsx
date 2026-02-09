@@ -1,14 +1,16 @@
 
-import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Edit3, Search, Trash2 } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Edit3, Plus, Search, Trash2 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Category, TransactionType } from '../types';
+import QuickAddModal from './QuickAddModal';
 
 const TransactionList: React.FC = () => {
-  const { transactions, deleteTransaction } = useData();
+  const { transactions, deleteTransaction, addTransaction } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | TransactionType>('all');
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filteredAndGrouped = useMemo(() => {
     const filtered = transactions.filter(t => {
@@ -55,6 +57,33 @@ const TransactionList: React.FC = () => {
 
   return (
     <div className="space-y-6 transition-colors pb-12">
+      {/* Quick Add Buttons */}
+      <div className="grid grid-cols-2 gap-4 md:gap-6 animate-slide-in-up">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center justify-center gap-3 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white py-5 px-6 rounded-2xl font-bold shadow-lg hover:shadow-2xl transition-all active:scale-95 group"
+        >
+          <Plus size={22} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span className="hidden sm:inline">Despesa</span>
+          <span className="sm:hidden">-</span>
+        </button>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center justify-center gap-3 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-5 px-6 rounded-2xl font-bold shadow-lg hover:shadow-2xl transition-all active:scale-95 group"
+        >
+          <Plus size={22} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span className="hidden sm:inline">Receita</span>
+          <span className="sm:hidden">+</span>
+        </button>
+      </div>
+
+      {/* Modal */}
+      <QuickAddModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={addTransaction}
+      />
+
       <div className="bg-white dark:bg-zinc-900 p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 flex flex-col md:flex-row gap-4 items-center sticky top-0 z-10">
         <div className="relative w-full md:flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" size={18} />
