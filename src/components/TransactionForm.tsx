@@ -1,10 +1,10 @@
 
-import { AlertCircle, Calendar, DollarSign, Save, Tag } from 'lucide-react';
+import { AlertCircle, Calendar, DollarSign, Loader2, Save, Tag } from 'lucide-react';
 import React, { useState } from 'react';
 import { Category, Transaction } from '../types';
 
 interface TransactionFormProps {
-  onSave: (transaction: Partial<Transaction>) => void;
+  onSave: (transaction: Partial<Transaction>) => Promise<void> | void;
   initialData?: Transaction;
 }
 
@@ -18,8 +18,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
   });
 
   const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringMonths, setRecurringMonths] = useState(1);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const addMonths = (dateStr: string, months: number) => {
+    const d = new Date(dateStr);
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString().split('T')[0];
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -28,15 +37,32 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
       return;
     }
 
-    onSave(formData);
-    // Reset form
-    setFormData({
-      description: '',
-      value: 0,
-      type: 'expense',
-      category: Category.Others,
-      date: new Date().toISOString().split('T')[0]
-    });
+    try {
+      setIsSaving(true);
+      if (isRecurring && recurringMonths > 1) {
+        for (let i = 0; i < recurringMonths; i += 1) {
+          const nextDate = addMonths(formData.date as string, i);
+          await onSave({ ...formData, date: nextDate });
+        }
+      } else {
+        await onSave(formData);
+      }
+
+      // Reset form
+      setFormData({
+        description: '',
+        value: 0,
+        type: 'expense',
+        category: Category.Others,
+        date: new Date().toISOString().split('T')[0]
+      });
+      setIsRecurring(false);
+      setRecurringMonths(1);
+    } catch (err) {
+      setError('Não foi possível salvar. Tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,12 +157,44 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
         </select>
       </div>
 
+      <div className="space-y-2">
+        <label className="flex items-center justify-between text-sm font-semibold text-slate-700 dark:text-zinc-300">
+          <span>Recorrente</span>
+          <input
+            type="checkbox"
+            checked={isRecurring}
+            onChange={(e) => setIsRecurring(e.target.checked)}
+            className="h-4 w-4 accent-indigo-600"
+          />
+        </label>
+        {isRecurring && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs text-slate-500 dark:text-zinc-400">Repetir por</label>
+              <select
+                value={recurringMonths}
+                onChange={(e) => setRecurringMonths(Number(e.target.value))}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm"
+              >
+                {[1, 2, 3, 6, 12].map((m) => (
+                  <option key={m} value={m}>{m} mês(es)</option>
+                ))}
+              </select>
+            </div>
+            <div className="text-xs text-slate-400 dark:text-zinc-500 flex items-end">
+              Cria lançamentos futuros automaticamente.
+            </div>
+          </div>
+        )}
+      </div>
+
       <button
         type="submit"
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95"
+        disabled={isSaving}
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <Save size={20} />
-        {initialData ? 'Salvar Alterações' : 'Adicionar Transação'}
+        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+        {isSaving ? 'Salvando...' : (initialData ? 'Salvar Alterações' : 'Adicionar Transação')}
       </button>
     </form>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Transaction } from '../types';
 import { useAuth } from './AuthContext';
@@ -7,6 +7,7 @@ interface DataContextType {
     transactions: Transaction[];
     loading: boolean;
     isSynced: boolean;
+    lastError: string | null;
     addTransaction: (t: Omit<Transaction, 'id'>) => Promise<void>;
     updateTransaction: (t: Transaction) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
@@ -21,6 +22,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSynced, setIsSynced] = useState(true);
+    const [lastError, setLastError] = useState<string | null>(null);
+
+    const getCacheKey = (userId?: string) => userId ? `transactions_cache_${userId}` : 'transactions_cache';
+
+    const persistCache = (data: Transaction[]) => {
+        if (!user?.id) return;
+        try {
+            localStorage.setItem(getCacheKey(user.id), JSON.stringify(data));
+        } catch {
+            // ignore cache errors
+        }
+    };
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -43,11 +56,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.setItem('demo_transactions', JSON.stringify(initial));
             }
             setLoading(false);
+            setLastError(null);
             return;
         }
 
         // Real Supabase Data
-        if (!supabase) return;
+        if (!supabase) {
+            setLastError('Supabase não configurado. Usando dados locais.');
+            setLoading(false);
+            return;
+        }
         try {
             const { data, error } = await supabase
                 .from('transactions')
@@ -56,9 +74,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .order('date', { ascending: false });
 
             if (error) throw error;
-            if (data) setTransactions(data);
+            if (data) {
+                setTransactions(data);
+                persistCache(data);
+            }
+            setLastError(null);
         } catch (err) {
             console.error('Error loading Supabase data', err);
+            setIsSynced(false);
+            setLastError('Falha ao carregar dados do servidor. Usando cache local.');
+            try {
+                const cached = localStorage.getItem(getCacheKey(user.id));
+                if (cached) setTransactions(JSON.parse(cached));
+            } catch {
+                // ignore
+            }
         } finally {
             setLoading(false);
         }
@@ -79,8 +109,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Optimistic Update
-        setTransactions(prev => [newTx, ...prev]);
+        setTransactions(prev => {
+            const updated = [newTx, ...prev];
+            persistCache(updated);
+            return updated;
+        });
         setIsSynced(false);
+        setLastError(null);
 
         if (supabase && user) {
             const { error } = await supabase.from('transactions').insert([{
@@ -89,7 +124,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 dedupe_key: undefined
             }]);
             if (!error) setIsSynced(true);
-            else console.error(error);
+            else {
+                console.error(error);
+                setLastError('Falha ao salvar transação. Verifique sua conexão.');
+            }
         }
     };
 
@@ -101,8 +139,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
-        setTransactions(prev => prev.map(tr => tr.id === t.id ? t : tr));
+        setTransactions(prev => {
+            const updated = prev.map(tr => tr.id === t.id ? t : tr);
+            persistCache(updated);
+            return updated;
+        });
         setIsSynced(false);
+        setLastError(null);
 
         if (supabase && user) {
             const { error } = await supabase.from('transactions').update({
@@ -111,8 +154,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 category: t.category,
                 type: t.type,
                 date: t.date
-            }).eq('id', t.id);
+            }).eq('id', t.id).eq('user_id', user.id);
             if (!error) setIsSynced(true);
+            else setLastError('Falha ao atualizar. Tente novamente.');
         }
     };
 
@@ -124,17 +168,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
-        setTransactions(prev => prev.filter(tr => tr.id !== id));
+        setTransactions(prev => {
+            const updated = prev.filter(tr => tr.id !== id);
+            persistCache(updated);
+            return updated;
+        });
         setIsSynced(false);
+        setLastError(null);
 
         if (supabase && user) {
-            const { error } = await supabase.from('transactions').delete().eq('id', id);
+            const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', user.id);
             if (!error) setIsSynced(true);
+            else setLastError('Falha ao excluir. Tente novamente.');
         }
     };
 
     return (
-        <DataContext.Provider value={{ transactions, loading, isSynced, addTransaction, updateTransaction, deleteTransaction, refresh: loadData, sync: loadData }}>
+        <DataContext.Provider value={{ transactions, loading, isSynced, lastError, addTransaction, updateTransaction, deleteTransaction, refresh: loadData, sync: loadData }}>
             {children}
         </DataContext.Provider>
     );

@@ -6,7 +6,7 @@ import TransactionForm from './TransactionForm';
 interface QuickAddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (transaction: Partial<Transaction>) => void;
+  onAdd: (transaction: Partial<Transaction>) => Promise<void> | void;
   defaultType?: TransactionType;
 }
 
@@ -18,8 +18,8 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({
 }) => {
   const [localType] = useState<TransactionType>(defaultType);
 
-  const handleAdd = (transaction: Partial<Transaction>) => {
-    onAdd({ ...transaction, type: localType });
+  const handleAdd = async (transaction: Partial<Transaction>) => {
+    await onAdd({ ...transaction, type: localType });
     onClose();
   };
 

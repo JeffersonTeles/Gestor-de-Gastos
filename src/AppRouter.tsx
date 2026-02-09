@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AICounselor from './components/AICounselor';
 import { Auth } from './components/Auth';
@@ -15,6 +15,21 @@ export const AppRouter: React.FC = () => {
     const { user, loading } = useAuth();
     const { addTransaction } = useData();
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement | null;
+            const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+            if (isTyping) return;
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+                e.preventDefault();
+                setIsModalOpen(true);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
 

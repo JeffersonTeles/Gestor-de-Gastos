@@ -2,15 +2,17 @@
 import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Edit3, Plus, Search, Trash2 } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Category, TransactionType } from '../types';
+import { Category, Transaction, TransactionType } from '../types';
 import QuickAddModal from './QuickAddModal';
 
 const TransactionList: React.FC = () => {
-  const { transactions, deleteTransaction, addTransaction } = useData();
+  const { transactions, deleteTransaction, addTransaction, updateTransaction, loading, lastError } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | TransactionType>('all');
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Partial<Transaction>>({});
 
   const filteredAndGrouped = useMemo(() => {
     const filtered = transactions.filter(t => {
@@ -53,7 +55,38 @@ const TransactionList: React.FC = () => {
     return { income, expense, balance: income - expense };
   };
 
+  const startEdit = (transaction: Transaction) => {
+    setEditingId(transaction.id);
+    setEditDraft({ ...transaction });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditDraft({});
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    const updated = {
+      ...(editDraft as Transaction),
+      id: editingId
+    } as Transaction;
+    await updateTransaction(updated);
+    setEditingId(null);
+    setEditDraft({});
+  };
+
   const categories = Object.values(Category);
+
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-12">
+        <div className="h-24 rounded-2xl bg-slate-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-32 rounded-2xl bg-slate-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-48 rounded-2xl bg-slate-100 dark:bg-zinc-800 animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 transition-colors pb-12">
@@ -83,6 +116,12 @@ const TransactionList: React.FC = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={addTransaction}
       />
+
+      {lastError && (
+        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 px-4 py-3 rounded-xl text-sm font-semibold">
+          {lastError}
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-zinc-800 flex flex-col md:flex-row gap-4 items-center sticky top-0 z-10">
         <div className="relative w-full md:flex-1">
@@ -165,48 +204,111 @@ const TransactionList: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                        {monthTransactions.map(transaction => (
-                          <tr key={transaction.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-                            <td className="px-6 py-3 text-sm text-slate-600 dark:text-zinc-400 whitespace-nowrap">
-                              {new Date(transaction.date).toLocaleDateString('pt-BR')}
-                            </td>
-                            <td className="px-6 py-3">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-1.5 rounded-lg ${transaction.type === 'income' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                                  }`}>
-                                  {transaction.type === 'income' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                        {monthTransactions.map(transaction => {
+                          const isEditing = editingId === transaction.id;
+
+                          return (
+                            <tr key={transaction.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                              <td className="px-6 py-3 text-sm text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                                {isEditing ? (
+                                  <input
+                                    type="date"
+                                    value={editDraft.date || transaction.date}
+                                    onChange={(e) => setEditDraft(prev => ({ ...prev, date: e.target.value }))}
+                                    className="px-2 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-xs"
+                                  />
+                                ) : (
+                                  new Date(transaction.date).toLocaleDateString('pt-BR')
+                                )}
+                              </td>
+                              <td className="px-6 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-1.5 rounded-lg ${transaction.type === 'income' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                    }`}>
+                                    {transaction.type === 'income' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                                  </div>
+                                  {isEditing ? (
+                                    <input
+                                      type="text"
+                                      value={editDraft.description || ''}
+                                      onChange={(e) => setEditDraft(prev => ({ ...prev, description: e.target.value }))}
+                                      className="w-full px-2 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm"
+                                    />
+                                  ) : (
+                                    <span className="font-semibold text-slate-800 dark:text-zinc-200 text-sm truncate">{transaction.description}</span>
+                                  )}
                                 </div>
-                                <span className="font-semibold text-slate-800 dark:text-zinc-200 text-sm truncate">{transaction.description}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-3 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${transaction.category === Category.Loan ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                              </td>
+                              <td className="px-6 py-3 whitespace-nowrap">
+                                {isEditing ? (
+                                  <select
+                                    value={editDraft.category || transaction.category}
+                                    onChange={(e) => setEditDraft(prev => ({ ...prev, category: e.target.value as Category }))}
+                                    className="px-2 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-xs"
+                                  >
+                                    {categories.map((cat) => (
+                                      <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${transaction.category === Category.Loan ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400'
+                                    }`}>
+                                    {transaction.category}
+                                  </span>
+                                )}
+                              </td>
+                              <td className={`px-6 py-3 text-sm font-bold text-right whitespace-nowrap ${transaction.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                 }`}>
-                                {transaction.category}
-                              </span>
-                            </td>
-                            <td className={`px-6 py-3 text-sm font-bold text-right whitespace-nowrap ${transaction.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                              }`}>
-                              {transaction.type === 'income' ? '+' : '-'} {transaction.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                            </td>
-                            <td className="px-6 py-3">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => {/* TODO: Implementar edição */}}
-                                  className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-all"
-                                >
-                                  <Edit3 size={16} />
-                                </button>
-                                <button
-                                  onClick={() => deleteTransaction(transaction.id)}
-                                  className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                {isEditing ? (
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editDraft.value ?? transaction.value}
+                                    onChange={(e) => setEditDraft(prev => ({ ...prev, value: Number(e.target.value) }))}
+                                    className="w-28 px-2 py-1 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm text-right"
+                                  />
+                                ) : (
+                                  <>{transaction.type === 'income' ? '+' : '-'} {transaction.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</>
+                                )}
+                              </td>
+                              <td className="px-6 py-3">
+                                <div className="flex items-center justify-center gap-2">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        onClick={saveEdit}
+                                        className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-all"
+                                      >
+                                        <Check size={16} />
+                                      </button>
+                                      <button
+                                        onClick={cancelEdit}
+                                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                      >
+                                        <X size={16} />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => startEdit(transaction)}
+                                        className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-all"
+                                      >
+                                        <Edit3 size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() => deleteTransaction(transaction.id)}
+                                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
