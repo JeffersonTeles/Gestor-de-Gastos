@@ -1,7 +1,10 @@
 
-import { AlertCircle, Calendar, DollarSign, Loader2, Save, Tag } from 'lucide-react';
+import { AlertCircle, Calendar, DollarSign, Loader2, Save, StickyNote } from 'lucide-react';
 import React, { useState } from 'react';
 import { Category, Transaction } from '../types';
+import { sanitizeTransaction, validateTransaction } from '../utils/validation';
+import AttachmentUploader from './AttachmentUploader';
+import TagInput from './TagInput';
 
 interface TransactionFormProps {
   onSave: (transaction: Partial<Transaction>) => Promise<void> | void;
@@ -14,12 +17,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
     value: 0,
     type: 'expense',
     category: Category.Others,
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    tags: [],
+    notes: '',
   });
 
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isRecurring, setIsRecurring] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(initialData?.is_recurring || false);
   const [recurringMonths, setRecurringMonths] = useState(1);
 
   const addMonths = (dateStr: string, months: number) => {
@@ -32,8 +37,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
     e.preventDefault();
     setError('');
 
-    if (!formData.description || !formData.value || formData.value <= 0) {
-      setError('Por favor, preencha a descrição e um valor válido.');
+    // Validar e sanitizar dados
+    const sanitized = sanitizeTransaction(formData);
+    const validation = validateTransaction(sanitized);
+
+    if (!validation.valid) {
+      setError(validation.errors.join(', '));
       return;
     }
 
@@ -42,10 +51,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
       if (isRecurring && recurringMonths > 1) {
         for (let i = 0; i < recurringMonths; i += 1) {
           const nextDate = addMonths(formData.date as string, i);
-          await onSave({ ...formData, date: nextDate });
+          await onSave({ ...sanitized, date: nextDate, is_recurring: true });
         }
       } else {
-        await onSave(formData);
+        await onSave({ ...sanitized, is_recurring: isRecurring });
       }
 
       // Reset form
@@ -54,7 +63,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
         value: 0,
         type: 'expense',
         category: Category.Others,
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        tags: [],
+        notes: '',
       });
       setIsRecurring(false);
       setRecurringMonths(1);
@@ -156,6 +167,38 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
           ))}
         </select>
       </div>
+
+      {/* Tags */}
+      <TagInput
+        tags={formData.tags || []}
+        onChange={(tags) => setFormData({ ...formData, tags })}
+      />
+
+      {/* Notas adicionais */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+          <StickyNote size={16} />
+          Notas (opcional)
+        </label>
+        <textarea
+          value={formData.notes || ''}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          placeholder="Adicione observações, detalhes ou lembretes..."
+          className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100 resize-none"
+          rows={3}
+          maxLength={500}
+        />
+        <p className="text-xs text-slate-500 dark:text-zinc-400">
+          {(formData.notes || '').length}/500 caracteres
+        </p>
+      </div>
+
+      {/* Upload de anexo */}
+      <AttachmentUploader
+        currentUrl={formData.attachment_url}
+        onUploadComplete={(url) => setFormData({ ...formData, attachment_url: url })}
+        onRemove={() => setFormData({ ...formData, attachment_url: undefined })}
+      />
 
       <div className="space-y-2">
         <label className="flex items-center justify-between text-sm font-semibold text-slate-700 dark:text-zinc-300">
