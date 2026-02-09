@@ -1,14 +1,28 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestor de Gastos</title>
-    <script type="module" crossorigin src="/Gestor-de-Gastos/assets/index-DbUBIgnA.js"></script>
-    <link rel="stylesheet" crossorigin href="/Gestor-de-Gastos/assets/index-DhO-Tz4b.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Gastos</title>
+  <script type="module" crossorigin src="/Gestor-de-Gastos/assets/index-DwCgL9Fo.js"></script>
+  <link rel="stylesheet" crossorigin href="/Gestor-de-Gastos/assets/index-BYqDg-DJ.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    window.onerror = function (msg, url, line, col, error) {
+      document.body.innerHTML += '<div style="color:red;padding:20px;font-family:monospace;background:white;z-index:9999;position:relative;">' +
+        '<h3>Erro Detectado:</h3>' + msg + '<br>' + url + ':' + line + ':' + col +
+        '<br>' + (error ? error.stack : '') + '</div>';
+    };
+    window.onunhandledrejection = function (event) {
+      document.body.innerHTML += '<div style="color:red;padding:20px;font-family:monospace;background:white;z-index:9999;position:relative;">' +
+        '<h3>Promessa Rejeitada:</h3>' + event.reason + '</div>';
+    };
+  </script>
+</body>
+
 </html>
