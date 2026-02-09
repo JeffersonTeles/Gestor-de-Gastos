@@ -1,7 +1,7 @@
 
+import { Loader2, Lock, LogIn, Mail, UserPlus, Wallet } from 'lucide-react';
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, LogIn, UserPlus, Loader2, Wallet } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   if (!supabase) return null; // Should be handled by App.tsx
