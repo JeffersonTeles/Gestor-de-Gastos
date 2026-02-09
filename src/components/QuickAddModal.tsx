@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Transaction, TransactionType } from '../types';
 import TransactionForm from './TransactionForm';
 
@@ -16,10 +16,8 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({
   onAdd,
   defaultType = 'expense'
 }) => {
-  const [localType] = useState<TransactionType>(defaultType);
-
   const handleAdd = (transaction: Partial<Transaction>) => {
-    onAdd({ ...transaction, type: localType });
+    onAdd(transaction);
     onClose();
   };
 
@@ -54,7 +52,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({
           <div className="p-6">
             <TransactionForm 
               onSave={handleAdd}
-              initialData={undefined}
+              initialData={{ type: defaultType }}
             />
           </div>
         </div>
