@@ -1,7 +1,7 @@
 
+import { AlertCircle, Calendar, DollarSign, Save, Tag } from 'lucide-react';
 import React, { useState } from 'react';
-import { Transaction, TransactionType, Category } from '../types';
-import { Save, AlertCircle } from 'lucide-react';
+import { Category, Transaction } from '../types';
 
 interface TransactionFormProps {
   onSave: (transaction: Partial<Transaction>) => void;
@@ -29,6 +29,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
     }
 
     onSave(formData);
+    // Reset form
+    setFormData({
+      description: '',
+      value: 0,
+      type: 'expense',
+      category: Category.Others,
+      date: new Date().toISOString().split('T')[0]
+    });
   };
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,23 +57,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
         <button
           type="button"
           onClick={() => setFormData({ ...formData, type: 'expense' })}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${formData.type === 'expense' ? 'bg-white dark:bg-zinc-700 text-rose-600 dark:text-rose-400 shadow-sm' : 'text-slate-500 dark:text-zinc-500'
+          className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${formData.type === 'expense' ? 'bg-white dark:bg-zinc-700 text-rose-600 dark:text-rose-400 shadow-md' : 'text-slate-500 dark:text-zinc-500'
             }`}
         >
-          Despesa
+          💸 Despesa
         </button>
         <button
           type="button"
           onClick={() => setFormData({ ...formData, type: 'income' })}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${formData.type === 'income' ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-zinc-500'
+          className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${formData.type === 'income' ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-md' : 'text-slate-500 dark:text-zinc-500'
             }`}
         >
-          Receita
+          💰 Receita
         </button>
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Descrição</label>
+        <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+          <Tag size={16} />
+          Descrição
+        </label>
         <input
           type="text"
           value={formData.description}
@@ -78,18 +89,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Valor (R$)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.value || ''}
-            onChange={handleValueChange}
-            placeholder="0,00"
-            className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100"
-          />
+          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+            <DollarSign size={16} />
+            Valor (R$)
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              step="0.01"
+              value={formData.value || ''}
+              onChange={handleValueChange}
+              placeholder="0,00"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-zinc-100"
+            />
+          </div>
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300">Data</label>
+          <label className="text-sm font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-2">
+            <Calendar size={16} />
+            Data
+          </label>
           <input
             type="date"
             value={formData.date}
@@ -114,7 +133,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSave, initialData }
 
       <button
         type="submit"
-        className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-100 dark:shadow-none transition-all mt-4 active:scale-95"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95"
       >
         <Save size={20} />
         {initialData ? 'Salvar Alterações' : 'Adicionar Transação'}

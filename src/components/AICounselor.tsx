@@ -21,14 +21,14 @@ const AICounselor: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12 transition-colors">
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 dark:from-indigo-900 dark:to-zinc-900 p-8 md:p-12 rounded-[2rem] text-white shadow-xl shadow-indigo-200 dark:shadow-none border dark:border-zinc-800">
+    <div className="max-w-4xl mx-auto space-y-8 pb-12 transition-colors">
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 dark:from-indigo-900 dark:to-zinc-900 p-8 md:p-12 rounded-[2rem] text-white shadow-xl shadow-indigo-200 dark:shadow-none border dark:border-zinc-800 animate-slide-in-up">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
         
         <div className="relative z-10 flex flex-col items-center text-center">
-          <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl mb-6 ring-1 ring-white/30">
-            <Sparkles size={40} className="text-yellow-300 fill-yellow-300" />
+          <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl mb-6 ring-1 ring-white/30 group hover:scale-110 transition-transform cursor-pointer">
+            <Sparkles size={40} className="text-yellow-300 fill-yellow-300 animate-pulse" />
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">Análise Inteligente Gemini</h2>
           <p className="text-indigo-100 dark:text-zinc-300 text-lg max-w-2xl mb-8 leading-relaxed">
@@ -38,7 +38,7 @@ const AICounselor: React.FC = () => {
           <button
             onClick={handleGenerateAdvice}
             disabled={loading}
-            className="group relative flex items-center gap-3 bg-white dark:bg-indigo-500 text-indigo-600 dark:text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-indigo-500/20 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
+            className="group relative flex items-center gap-3 bg-white dark:bg-indigo-500 text-indigo-600 dark:text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-2xl hover:shadow-indigo-500/40 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {loading ? (
               <>
@@ -56,9 +56,9 @@ const AICounselor: React.FC = () => {
       </div>
 
       {advice && !loading && (
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-sm border border-slate-100 dark:border-zinc-800 animate-in fade-in slide-in-from-bottom-8 duration-700 transition-colors">
+        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] shadow-sm border border-slate-100 dark:border-zinc-800 animate-slide-in-up transition-colors">
           <div className="flex items-center gap-4 mb-8">
-             <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+             <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 hover:scale-110 transition-transform">
                 <Target size={24} />
              </div>
              <div>
@@ -80,15 +80,15 @@ const AICounselor: React.FC = () => {
           </div>
 
           <div className="mt-8 pt-8 border-t border-slate-100 dark:border-zinc-800 grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="p-4 bg-emerald-50 dark:bg-emerald-500/5 rounded-2xl border border-emerald-100 dark:border-emerald-500/10">
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold mb-1">
-                  <Lightbulb size={18} />
+             <div className="p-4 bg-emerald-50 dark:bg-emerald-500/5 rounded-2xl border border-emerald-100 dark:border-emerald-500/10 hover:shadow-lg hover:scale-105 transition-all cursor-pointer group">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold mb-1 group-hover:gap-3 transition-all">
+                  <Lightbulb size={18} className="group-hover:rotate-12 transition-transform" />
                   Dica de Ouro
                 </div>
                 <p className="text-emerald-600 dark:text-emerald-400/80 text-sm">Mantenha seus empréstimos marcados como recorrentes para ter uma visão clara do seu compromisso financeiro futuro.</p>
              </div>
-             <div className="p-4 bg-amber-50 dark:bg-amber-500/5 rounded-2xl border border-amber-100 dark:border-amber-500/10">
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold mb-1 text-sm uppercase tracking-wider">
+             <div className="p-4 bg-amber-50 dark:bg-amber-500/5 rounded-2xl border border-amber-100 dark:border-amber-500/10 hover:shadow-lg hover:scale-105 transition-all cursor-pointer group">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold mb-1 text-sm uppercase tracking-wider group-hover:gap-3 transition-all">
                   IA em constante aprendizado
                 </div>
                 <p className="text-amber-600 dark:text-amber-400/80 text-sm italic">Consulte sempre um profissional antes de tomar decisões críticas de investimento.</p>
@@ -98,7 +98,7 @@ const AICounselor: React.FC = () => {
       )}
 
       {loading && (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <div className="flex flex-col items-center justify-center py-20 space-y-4 animate-pulse">
           <div className="flex gap-2">
             <div className="w-4 h-4 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
             <div className="w-4 h-4 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>

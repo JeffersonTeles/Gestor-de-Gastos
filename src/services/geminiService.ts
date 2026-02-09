@@ -1,12 +1,27 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Transaction } from "../types";
 
+const DEMO_ADVICE = `**Análise Financeira (Modo Demo)**
+
+Baseado em suas transações, aqui estão as recomendações:
+
+**1. Controle de Despesas**
+Mantenha um registro detalhado de suas despesas por categoria para identificar padrões de gastos desnecessários.
+
+**2. Criação de Fundo de Emergência**
+Reserve pelo menos 3-6 meses de despesas mensais em uma conta poupança para lidar com imprevistos.
+
+**3. Planejamento de Investimentos**
+Depois de estabilizar seu orçamento, considere diversificar seus investimentos para crescimento a longo prazo.
+
+*Nota: Esta é uma análise em modo demo. Para análises mais precisas, configure sua chave API do Gemini no arquivo .env*`;
+
 export const getFinancialAdvice = async (transactions: Transaction[]): Promise<string> => {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-  if (!apiKey) {
-    console.error("API Key do Gemini não encontrada");
-    return "Erro de configuração: Chave da API (VITE_GEMINI_API_KEY) não encontrada. Verifique o arquivo .env";
+  if (!apiKey || apiKey === "sua_chave_api_aqui") {
+    console.warn("API Key do Gemini não encontrada. Usando modo demo.");
+    return DEMO_ADVICE;
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -31,6 +46,7 @@ export const getFinancialAdvice = async (transactions: Transaction[]): Promise<s
     return response.text() || "Não foi possível gerar uma análise no momento.";
   } catch (error) {
     console.error("Erro ao chamar Gemini:", error);
-    return "Desculpe, houve um erro ao processar sua análise financeira. Verifique se sua chave API está correta e se você tem saldo/cota disponível.";
+    console.warn("Usando modo demo como fallback");
+    return DEMO_ADVICE;
   }
 };

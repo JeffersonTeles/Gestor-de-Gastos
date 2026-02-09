@@ -1,5 +1,5 @@
+import { CloudCheck, CloudOff, Landmark, LayoutDashboard, List, LogOut, Moon, Plus, RefreshCw, Sparkles, Sun, UploadCloud, Wallet } from 'lucide-react';
 import React from 'react';
-import { Wallet, LayoutDashboard, List, Landmark, Sparkles, CloudCheck, CloudOff, RefreshCw, UploadCloud, Sun, Moon, LogOut } from 'lucide-react';
 
 interface SidebarProps {
     activeTab: string;
@@ -26,11 +26,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     return (
         <aside className="hidden md:flex flex-col w-72 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 p-8 shadow-sm">
-            <div className="flex items-center gap-4 mb-12">
-                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 dark:shadow-none cursor-pointer" onClick={() => onNavigate('/dashboard')}>
+            <div className="flex items-center gap-4 mb-12 group cursor-pointer" onClick={() => onNavigate('/dashboard')}>
+                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100 dark:shadow-none group-hover:scale-110 transition-transform">
                     <Wallet size={24} />
                 </div>
-                <h1 className="font-black text-2xl tracking-tighter cursor-pointer" onClick={() => onNavigate('/dashboard')}>Gestor de Gastos</h1>
+                <h1 className="font-black text-2xl tracking-tighter group-hover:text-indigo-600 transition-colors">Gestor de Gastos</h1>
             </div>
 
             <nav className="flex-1 space-y-3">
@@ -38,6 +38,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <NavItem active={activeTab === 'transactions'} onClick={() => onNavigate('/transactions')} icon={<List size={20} />} label="Extrato Geral" />
                 <NavItem active={activeTab === 'loans'} onClick={() => onNavigate('/loans')} icon={<Landmark size={20} />} label="Empréstimos" />
                 <NavItem active={activeTab === 'ai'} onClick={() => onNavigate('/ai')} icon={<Sparkles size={20} />} label="IA Insight" />
+                
+                {/* Add Transaction Button in Sidebar */}
+                <div className="pt-6 border-t border-slate-100 dark:border-zinc-800">
+                    <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all active:scale-95">
+                        <Plus size={20} />
+                        Adicionar
+                    </button>
+                </div>
             </nav>
 
             <div className="pt-8 border-t border-slate-100 dark:border-zinc-800 space-y-4">
@@ -73,5 +81,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 const NavItem: React.FC<{ active: boolean; onClick: () => void; icon: React.ReactNode; label: string }> = ({ active, onClick, icon, label }) => (
-    <button onClick={onClick} className={`w-full flex items-center gap-4 px-5 py-4 rounded-[1.25rem] text-sm font-black transition-all ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>{icon}{label}</button>
+    <button onClick={onClick} className={`w-full flex items-center gap-4 px-5 py-4 rounded-[1.25rem] text-sm font-black transition-all group ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 group'}`}>
+        <span className={active ? '' : 'group-hover:scale-110 transition-transform'}>{icon}</span>
+        {label}
+    </button>
 );

@@ -1,14 +1,14 @@
 
-import React, { useMemo } from 'react';
-import { Transaction, Category } from '../types';
-import { Landmark, ArrowRight, Calendar, AlertCircle, TrendingDown } from 'lucide-react';
+import { AlertCircle, ArrowRight, Calendar, Landmark, Plus, TrendingDown } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { useData } from '../contexts/DataContext';
+import { Category } from '../types';
+import QuickAddModal from './QuickAddModal';
 
-interface LoanDashboardProps {
-  transactions: Transaction[];
-  onEdit: (t: Transaction) => void;
-}
+export const LoanDashboard: React.FC = () => {
+  const { transactions, addTransaction } = useData();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-export const LoanDashboard: React.FC<LoanDashboardProps> = ({ transactions, onEdit }) => {
   const loans = useMemo(() => 
     transactions.filter(t => t.category === Category.Loan), 
   [transactions]);
@@ -25,7 +25,23 @@ export const LoanDashboard: React.FC<LoanDashboardProps> = ({ transactions, onEd
   }, [loans]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* Quick Add Button */}
+      <button
+        onClick={() => setIsAddModalOpen(true)}
+        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white py-5 px-6 rounded-2xl font-bold shadow-lg hover:shadow-2xl transition-all active:scale-95 group animate-slide-in-up"
+      >
+        <Plus size={22} className="group-hover:rotate-90 transition-transform duration-300" />
+        Registrar Novo Empréstimo
+      </button>
+
+      {/* Modal */}
+      <QuickAddModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={addTransaction}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gradient-to-br from-rose-500 to-orange-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-rose-100 dark:shadow-none">
           <div className="flex items-center gap-3 mb-6">
@@ -90,7 +106,7 @@ export const LoanDashboard: React.FC<LoanDashboardProps> = ({ transactions, onEd
                   </div>
                   <div className="text-[10px] font-bold text-rose-500 uppercase">Valor do Lançamento</div>
                 </div>
-                <button onClick={() => onEdit(loan)} className="p-3 text-slate-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all">
+                <button onClick={() => {/* TODO: Implementar edição */}} className="p-3 text-slate-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-all">
                   <ArrowRight size={20} />
                 </button>
               </div>
