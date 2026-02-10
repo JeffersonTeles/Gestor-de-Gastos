@@ -99,24 +99,24 @@ export default function DashboardPage() {
       <Header />
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 flex gap-1">
+      <div className="bg-white/90 backdrop-blur border-b border-gray-200">
+        <div className="max-w-md mx-auto px-4 py-2 flex gap-2">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`flex-1 py-4 text-sm font-semibold transition ${
+            className={`flex-1 py-3 text-sm font-semibold rounded-full transition ${
               activeTab === 'overview'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             📊 Visão Geral
           </button>
           <button
             onClick={() => setActiveTab('charts')}
-            className={`flex-1 py-4 text-sm font-semibold transition ${
+            className={`flex-1 py-3 text-sm font-semibold rounded-full transition ${
               activeTab === 'charts'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
             📈 Gráficos

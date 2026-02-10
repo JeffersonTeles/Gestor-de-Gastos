@@ -52,7 +52,7 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
           return (
             <div
               key={budget.id}
-              className="p-4 bg-white border border-gray-100 rounded-lg hover:shadow-md transition group"
+              className="p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition group"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
@@ -78,13 +78,13 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
               {/* Valores */}
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-xs text-gray-500">Gasto</p>
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Gasto</p>
                   <p className="text-lg font-bold text-gray-900">
                     R$ {spent.toFixed(2)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">Limite</p>
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Limite</p>
                   <p className="text-sm font-semibold text-gray-700">
                     R$ {limit.toFixed(2)}
                   </p>
@@ -143,7 +143,7 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
       </div>
 
       {/* Resumo Total */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-xs text-gray-600">Total Orçado</p>

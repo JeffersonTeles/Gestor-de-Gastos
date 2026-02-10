@@ -114,15 +114,15 @@ export default function LoansPage() {
       <Header />
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 flex gap-1">
+      <div className="bg-white/90 backdrop-blur border-b border-gray-200">
+        <div className="max-w-md mx-auto px-4 py-2 flex gap-2">
           <Link
             href="/dashboard"
-            className="flex-1 py-4 text-center text-sm font-medium text-gray-500 hover:text-gray-700 transition"
+            className="flex-1 py-3 text-center text-sm font-semibold rounded-full text-gray-600 hover:bg-gray-100 transition"
           >
             ← Dashboard
           </Link>
-          <div className="flex-1 py-4 text-center text-sm font-bold text-blue-600 border-b-2 border-blue-600">
+          <div className="flex-1 py-3 text-center text-sm font-semibold rounded-full bg-blue-600 text-white shadow-sm">
             Empréstimos
           </div>
         </div>
@@ -132,8 +132,8 @@ export default function LoansPage() {
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="grid grid-cols-2 gap-4 mb-6">
           {/* Emprestei */}
-          <div className="bg-gradient-to-br from-green-500 to-green-600 p-4 rounded-xl text-white">
-            <p className="text-xs opacity-90 mb-1">💸 Emprestei</p>
+          <div className="bg-gradient-to-br from-green-500 to-green-700 p-4 rounded-2xl text-white shadow-sm">
+            <p className="text-xs uppercase tracking-wide opacity-90 mb-1">💸 Emprestei</p>
             <p className="text-2xl font-bold mb-1">
               R$ {totals.lent.toFixed(2)}
             </p>
@@ -143,8 +143,8 @@ export default function LoansPage() {
           </div>
 
           {/* Peguei */}
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 rounded-xl text-white">
-            <p className="text-xs opacity-90 mb-1">🤝 Peguei</p>
+          <div className="bg-gradient-to-br from-orange-500 to-orange-700 p-4 rounded-2xl text-white shadow-sm">
+            <p className="text-xs uppercase tracking-wide opacity-90 mb-1">🤝 Peguei</p>
             <p className="text-2xl font-bold mb-1">
               R$ {totals.borrowed.toFixed(2)}
             </p>

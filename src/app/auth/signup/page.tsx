@@ -48,8 +48,14 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6 text-center">Cadastrar</h1>
+      <div className="w-full max-w-sm bg-white/90 backdrop-blur border border-gray-200 rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Comece agora</p>
+          <h1 className="text-3xl font-bold text-gray-900">Cadastrar</h1>
+          <p className="text-sm text-gray-500 mt-2">
+            Organize seu dinheiro com o Gestor de Gastos.
+          </p>
+        </div>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-3 rounded mb-4 text-sm">
@@ -59,7 +65,7 @@ export default function SignupPage() {
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1">
+            <label htmlFor="name" className="block text-sm font-semibold mb-1 text-gray-700">
               Nome
             </label>
             <input
@@ -68,13 +74,13 @@ export default function SignupPage() {
               placeholder="Seu nome"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
+            <label htmlFor="email" className="block text-sm font-semibold mb-1 text-gray-700">
               Email
             </label>
             <input
@@ -83,13 +89,13 @@ export default function SignupPage() {
               placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label htmlFor="password" className="block text-sm font-semibold mb-1 text-gray-700">
               Senha
             </label>
             <input
@@ -98,17 +104,17 @@ export default function SignupPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
 
-          <Button type="submit" className="w-full" isLoading={loading}>
+          <Button type="submit" className="w-full !py-3 !rounded-xl" isLoading={loading}>
             {loading ? 'Cadastrando...' : 'Cadastrar'}
           </Button>
         </form>
 
-        <p className="text-center text-sm mt-4">
+        <p className="text-center text-sm mt-4 text-gray-600">
           Já tem conta?{' '}
           <Link href="/auth/login" className="text-blue-600 hover:underline">
             Faça login

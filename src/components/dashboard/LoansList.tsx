@@ -165,7 +165,9 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
           return (
             <div
               key={loan.id}
-              className="p-4 bg-white border border-gray-100 rounded-lg hover:shadow-md transition group"
+              className={`p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition group border-l-4 ${
+                loan.type === 'lent' ? 'border-l-green-500' : 'border-l-orange-500'
+              }`}
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-2">
@@ -196,14 +198,14 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
               {/* Valores */}
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-xs text-gray-500">Total</p>
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Total</p>
                   <p className="text-lg font-bold text-gray-900">
                     {formatCurrency(loan.amount)}
                   </p>
                 </div>
                 {loan.paidAmount > 0 && (
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Pago</p>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Pago</p>
                     <p className="text-sm font-semibold text-green-600">
                       {formatCurrency(loan.paidAmount)}
                     </p>

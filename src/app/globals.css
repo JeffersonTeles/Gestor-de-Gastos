@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,4 +14,34 @@ html {
 
 body {
   @apply bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 transition-colors;
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-image:
+    radial-gradient(900px 300px at 10% -10%, #dbeafe 0%, transparent 60%),
+    radial-gradient(900px 300px at 90% -20%, #fef3c7 0%, transparent 55%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3 {
+  font-family: 'DM Serif Display', ui-serif, Georgia, serif;
+  letter-spacing: 0.2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #bfdbfe;
+  color: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-image: none;
+  }
 }

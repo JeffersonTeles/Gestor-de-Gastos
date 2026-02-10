@@ -42,7 +42,7 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
         {transactions.map(tx => (
           <div
             key={tx.id}
-            className={`flex items-center justify-between p-4 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 transition group border-l-4 ${
+            className={`flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 hover:shadow-sm transition group border-l-4 ${
               tx.type === 'income' ? 'border-l-green-500' : 'border-l-red-500'
             }`}
           >
