@@ -23,21 +23,28 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
     return (
       <div className="max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">📭</p>
-        <p className="text-gray-500 mt-2">Nenhuma transação ainda.</p>
-        <p className="text-xs text-gray-400 mt-1">Clique em + para adicionar uma</p>
+        <p className="text-gray-500 mt-2">Nenhuma transação registrada.</p>
+        <p className="text-xs text-gray-400 mt-1">Use o botão + para adicionar a primeira.</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Últimas Transações</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-4">
+        Transações
+        <span className="ml-2 text-xs font-semibold text-gray-500">
+          {transactions.length}
+        </span>
+      </h3>
       
       <div className="space-y-2">
         {transactions.map(tx => (
           <div
             key={tx.id}
-            className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 transition group"
+            className={`flex items-center justify-between p-4 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 transition group border-l-4 ${
+              tx.type === 'income' ? 'border-l-green-500' : 'border-l-red-500'
+            }`}
           >
             {/* Esquerda: Emoji + Descrição */}
             <div className="flex-1 flex items-center gap-3 min-w-0">
@@ -52,6 +59,11 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
                 <p className="text-xs text-gray-500">
                   {tx.category} • {formatDate(tx.date)}
                 </p>
+                {tx.notes && (
+                  <p className="text-[11px] text-gray-400 truncate">
+                    {tx.notes}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -65,11 +77,12 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
                 {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
               </span>
 
-              <div className="flex gap-1">
+              <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
                 <button
                   onClick={() => onEdit(tx)}
-                  className="opacity-0 group-hover:opacity-100 p-2 text-blue-500 hover:bg-blue-50 rounded transition"
+                  className="p-2 text-blue-500 hover:bg-blue-50 rounded transition"
                   title="Editar"
+                  aria-label="Editar transacao"
                 >
                   ✏️
                 </button>
@@ -80,8 +93,9 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
                       onDelete(tx.id);
                     }
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:bg-red-50 rounded transition"
+                  className="p-2 text-red-500 hover:bg-red-50 rounded transition"
                   title="Deletar"
+                  aria-label="Deletar transacao"
                 >
                   🗑️
                 </button>

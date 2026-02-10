@@ -14,9 +14,9 @@ export const Header = () => {
 
   if (!user) return null;
 
-  const isLoansPage = pathname?.includes('/loans');
-  const isBudgetsPage = pathname?.includes('/budgets');
-  const isDashboard = !isLoansPage && !isBudgetsPage;
+  const isLoansPage = pathname?.startsWith('/loans');
+  const isBudgetsPage = pathname?.startsWith('/budgets');
+  const isDashboard = pathname === '/' || pathname?.startsWith('/dashboard');
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -37,6 +37,7 @@ export const Header = () => {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
             title="Dashboard"
+            aria-label="Dashboard"
           >
             📊
           </Link>
@@ -48,6 +49,7 @@ export const Header = () => {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
             title="Orçamentos"
+            aria-label="Orcamentos"
           >
             🎯
           </Link>
@@ -59,6 +61,7 @@ export const Header = () => {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
             title="Empréstimos"
+            aria-label="Emprestimos"
           >
             💸
           </Link>

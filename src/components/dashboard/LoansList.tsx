@@ -1,6 +1,6 @@
 'use client';
 
-import { Loan } from '@/types';
+import { Loan } from '@/types/index';
 import { useState } from 'react';
 
 interface LoansListProps {
@@ -34,7 +34,7 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
       <div className="max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">💰</p>
         <p className="text-gray-500 mt-2">Nenhum empréstimo registrado.</p>
-        <p className="text-xs text-gray-400 mt-1">Clique em + para adicionar um</p>
+        <p className="text-xs text-gray-400 mt-1">Use o botão + para registrar o primeiro.</p>
       </div>
     );
   }
@@ -150,12 +150,17 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
         </div>
       </div>
 
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Empréstimos</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-1">Empréstimos</h3>
+      <p className="text-xs text-gray-500 mb-4">
+        Mostrando {filteredLoans.length} de {loans.length}
+      </p>
       
       <div className="space-y-3">
         {filteredLoans.map(loan => {
           const statusBadge = getStatusBadge(loan.status);
           const progress = calculateProgress(loan);
+          const isOverdue =
+            !!loan.dueDate && new Date(loan.dueDate) < new Date() && loan.status !== 'paid';
 
           return (
             <div
@@ -176,9 +181,16 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
                   )}
                 </div>
 
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusBadge.color}`}>
-                  {statusBadge.text}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isOverdue && (
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                      Atrasado
+                    </span>
+                  )}
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusBadge.color}`}>
+                    {statusBadge.text}
+                  </span>
+                </div>
               </div>
 
               {/* Valores */}
@@ -218,22 +230,19 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
               <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
                 <span>📅 {formatDate(loan.loanDate)}</span>
                 {loan.dueDate && (
-                  <span className={
-                    new Date(loan.dueDate) < new Date() && loan.status !== 'paid'
-                      ? 'text-red-600 font-semibold'
-                      : ''
-                  }>
+                  <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
                     ⏰ Venc: {formatDate(loan.dueDate)}
                   </span>
                 )}
               </div>
 
               {/* Ações */}
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+              <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
                 {loan.status !== 'paid' && (
                   <button
                     onClick={() => onAddPayment(loan)}
                     className="flex-1 py-2 px-3 bg-green-50 text-green-700 text-xs font-semibold rounded-lg hover:bg-green-100 transition"
+                    aria-label="Registrar pagamento"
                   >
                     💵 Registrar Pagamento
                   </button>
@@ -242,6 +251,7 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
                   onClick={() => onEdit(loan)}
                   className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                   title="Editar"
+                  aria-label="Editar emprestimo"
                 >
                   ✏️
                 </button>
@@ -253,6 +263,7 @@ export const LoansList = ({ loans, onDelete, onEdit, onAddPayment, loading }: Lo
                   }}
                   className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                   title="Deletar"
+                  aria-label="Deletar emprestimo"
                 >
                   🗑️
                 </button>

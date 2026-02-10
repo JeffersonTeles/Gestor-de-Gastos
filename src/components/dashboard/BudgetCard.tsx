@@ -14,7 +14,7 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
       <div className="max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">🎯</p>
         <p className="text-gray-500 mt-2">Nenhum orçamento definido.</p>
-        <p className="text-xs text-gray-400 mt-1">Clique em + para criar um</p>
+        <p className="text-xs text-gray-400 mt-1">Defina limites por categoria para acompanhar seus gastos.</p>
       </div>
     );
   }
@@ -35,7 +35,12 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Orçamentos</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-4">
+        Orçamentos
+        <span className="ml-2 text-xs font-semibold text-gray-500">
+          {budgets.length}
+        </span>
+      </h3>
       
       <div className="space-y-3">
         {budgets.map(budget => {
@@ -111,10 +116,11 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
               </div>
 
               {/* Ações */}
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+              <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition">
                 <button
                   onClick={() => onEdit(budget)}
                   className="flex-1 py-2 px-3 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition"
+                  aria-label="Editar orcamento"
                 >
                   ✏️ Editar
                 </button>
@@ -126,6 +132,7 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
                   }}
                   className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                   title="Deletar"
+                  aria-label="Deletar orcamento"
                 >
                   🗑️
                 </button>

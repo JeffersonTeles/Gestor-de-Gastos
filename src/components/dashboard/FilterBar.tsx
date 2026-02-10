@@ -42,8 +42,13 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [selectedType, setSelectedType] = useState('all');
+  const isFiltered =
+    selectedMonth !== 'all' ||
+    selectedYear !== 'all' ||
+    selectedCategory !== 'Todas' ||
+    selectedType !== 'all';
 
-  const applyFilters = (month: string, year: string, category: string, type: string) => {
+  const filterTransactions = (month: string, year: string, category: string, type: string) => {
     let filtered = [...transactions];
 
     // Filtro por mês
@@ -72,6 +77,19 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
       filtered = filtered.filter(tx => tx.type === type);
     }
 
+    return filtered;
+  };
+
+  const filteredCount = filterTransactions(
+    selectedMonth,
+    selectedYear,
+    selectedCategory,
+    selectedType
+  ).length;
+  const totalCount = transactions.length;
+
+  const applyFilters = (month: string, year: string, category: string, type: string) => {
+    const filtered = filterTransactions(month, year, category, type);
     onFilter(filtered);
   };
 
@@ -104,7 +122,13 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-4 sticky top-16 bg-gray-50 border-b border-gray-200 z-40">
+    <div className="max-w-md mx-auto px-4 py-4 sticky top-16 bg-white/90 backdrop-blur border-b border-gray-200 z-40 shadow-sm rounded-b-2xl">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-semibold text-gray-700">Filtros</h3>
+        <span className="text-xs text-gray-500">
+          {filteredCount} de {totalCount}
+        </span>
+      </div>
       <div className="space-y-3">
         {/* Tipo */}
         <div>
@@ -181,13 +205,15 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
         <div className="flex gap-2">
           <button
             onClick={handleClearFilters}
-            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition"
+            disabled={!isFiltered}
+            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            🔄 Limpar
+            🔄 Limpar filtros
           </button>
           <button
             onClick={onExport}
-            className="flex-1 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition"
+            disabled={transactions.length === 0}
+            className="flex-1 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             📥 Exportar
           </button>
