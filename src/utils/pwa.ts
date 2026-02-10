@@ -72,9 +72,8 @@ export const showNotification = async (
       await registration.showNotification(title, {
         icon: '/icon-192.png',
         badge: '/icon-192.png',
-        vibrate: [200, 100, 200],
-        ...options,
-      });
+        ...(options || {}),
+      } as NotificationOptions & { vibrate?: number[] });
     }
   }
 };

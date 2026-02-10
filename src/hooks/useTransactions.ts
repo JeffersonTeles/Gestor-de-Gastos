@@ -1,187 +1,127 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import { Transaction } from '../types';
+'use client';
 
-export const useTransactions = (session: any) => {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isSynced, setIsSynced] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-    const [dbError, setDbError] = useState<string | null>(null);
+import { createClient } from '@/lib/supabase/client';
+import { Transaction } from '@/lib/types';
+import { useCallback, useEffect, useState } from 'react';
 
-    const initAppData = useCallback(async (userId: string) => {
-        const cached = localStorage.getItem(`gestor_mesmo_cache_${userId}`);
-        if (cached) {
-            try {
-                setTransactions(JSON.parse(cached));
-            } catch (e) {
-                console.error("Cache local corrompido");
-            }
-        }
-        await fetchData(userId);
-    }, []);
+export const useTransactions = (userId: string | undefined) => {
+  const supabase = createClient();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const fetchData = useCallback(async (userId: string) => {
-        setIsRefreshing(true);
-        setDbError(null);
-        try {
-            const { data, error } = await supabase
-                .from('transactions')
-                .select('*')
-                .eq('user_id', userId)
-                .order('date', { ascending: false });
+  // Buscar transações
+  const fetchTransactions = useCallback(async () => {
+    if (!userId) return;
 
-            if (error) throw error;
+    try {
+      setLoading(true);
+      setError(null);
 
-            if (data) {
-                setTransactions(data);
-                localStorage.setItem(`gestor_mesmo_cache_${userId}`, JSON.stringify(data));
-                setIsSynced(true);
-            }
-        } catch (err: any) {
-            console.error("Erro ao buscar dados do Supabase:", err);
-            setDbError(`Falha na conexão: ${err.message}`);
-            setIsSynced(false);
-        } finally {
-            setLoading(false);
-            setIsRefreshing(false);
-        }
-    }, []);
+      const { data, error: fetchError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: false })
+        .limit(100);
 
-    useEffect(() => {
-        if (session?.user) {
-            initAppData(session.user.id);
-        } else {
-            setTransactions([]);
-            setLoading(false);
-        }
-    }, [session, initAppData]);
+      if (fetchError) throw fetchError;
+      setTransactions(data || []);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao buscar transações');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, supabase]);
 
-    const prepareForDB = (t: Partial<Transaction>, userId: string) => {
-        return {
-            id: t.id || crypto.randomUUID(),
-            user_id: userId,
-            date: t.date,
-            description: String(t.description),
-            category: t.category,
-            value: Number(t.value),
-            type: t.type,
-            source_rule_id: t.source_rule_id || null,
-            dedupe_key: t.dedupe_key || null
-        };
-    };
+  // Buscar ao montar
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
-    const sync = async () => {
-        if (!session?.user || transactions.length === 0) return;
-        setIsRefreshing(true);
-        setDbError(null);
-        try {
-            const sanitizedData = transactions.map(t => prepareForDB(t, session.user.id));
-            const { error } = await supabase
-                .from('transactions')
-                .upsert(sanitizedData, { onConflict: 'id' });
+  // Adicionar transação
+  const addTransaction = useCallback(
+    async (transaction: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>) => {
+      try {
+        setError(null);
 
-            if (error) throw error;
+        const { data, error: insertError } = await supabase
+          .from('transactions')
+          .insert([transaction])
+          .select()
+          .single();
 
-            setIsSynced(true);
-            await fetchData(session.user.id);
-        } catch (err: any) {
-            console.error("Erro na sincronização:", err);
-            setDbError(`Erro ao sincronizar: ${err.message}`);
-        } finally {
-            setIsRefreshing(false);
-        }
-    };
+        if (insertError) throw insertError;
 
-    const addTransaction = async (newTransaction: Omit<Transaction, 'id'>) => {
-        if (!session?.user) return;
+        setTransactions(prev => [data, ...prev]);
+        return data;
+      } catch (err: any) {
+        setError(err.message || 'Erro ao adicionar transação');
+        throw err;
+      }
+    },
+    [supabase]
+  );
 
-        const tempId = crypto.randomUUID();
-        const transactionToSave = {
-            ...newTransaction,
-            id: tempId,
-            user_id: session.user.id
-        } as Transaction;
+  // Deletar transação
+  const deleteTransaction = useCallback(
+    async (id: string) => {
+      try {
+        setError(null);
 
-        setTransactions(prev => [transactionToSave, ...prev]);
-        setIsSynced(false);
+        const { error: deleteError } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', userId);
 
-        try {
-            const dbPayload = prepareForDB(transactionToSave, session.user.id);
-            const { data, error } = await supabase
-                .from('transactions')
-                .insert([dbPayload])
-                .select();
+        if (deleteError) throw deleteError;
 
-            if (error) throw error;
-
-            if (data) {
-                setTransactions(prev => prev.map(t => t.id === tempId ? data[0] : t));
-                setIsSynced(true);
-                const updatedList = [data[0], ...transactions.filter(t => t.id !== tempId)];
-                localStorage.setItem(`gestor_mesmo_cache_${session.user.id}`, JSON.stringify(updatedList));
-            }
-        } catch (err: any) {
-            console.error("Erro ao salvar no banco:", err.message);
-            setDbError(`Erro ao salvar: ${err.message}`);
-        }
-    };
-
-    const updateTransaction = async (updated: Transaction) => {
-        if (!session?.user) return;
-
-        setIsSynced(false);
-        setTransactions(prev => prev.map(t => t.id === updated.id ? updated : t));
-
-        try {
-            const dbPayload = prepareForDB(updated, session.user.id);
-            const { error } = await supabase
-                .from('transactions')
-                .update(dbPayload)
-                .eq('id', updated.id)
-                .eq('user_id', session.user.id);
-
-            if (error) throw error;
-            setIsSynced(true);
-        } catch (err: any) {
-            console.error("Erro ao atualizar:", err.message);
-            setDbError(`Erro ao atualizar: ${err.message}`);
-        }
-    };
-
-    const deleteTransaction = async (id: string) => {
-        if (!session?.user) return;
-
-        setIsSynced(false);
-        const previousTransactions = [...transactions];
         setTransactions(prev => prev.filter(t => t.id !== id));
+      } catch (err: any) {
+        setError(err.message || 'Erro ao deletar transação');
+        throw err;
+      }
+    },
+    [userId, supabase]
+  );
 
-        try {
-            const { error } = await supabase
-                .from('transactions')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', session.user.id);
+  // Atualizar transação
+  const updateTransaction = useCallback(
+    async (id: string, updates: Partial<Transaction>) => {
+      try {
+        setError(null);
 
-            if (error) throw error;
-            setIsSynced(true);
-        } catch (err: any) {
-            console.error("Erro ao deletar:", err.message);
-            setTransactions(previousTransactions);
-            setDbError(`Erro ao deletar: ${err.message}`);
-        }
-    };
+        const { data, error: updateError } = await supabase
+          .from('transactions')
+          .update(updates)
+          .eq('id', id)
+          .eq('user_id', userId)
+          .select()
+          .single();
 
-    return {
-        transactions,
-        loading,
-        isSynced,
-        isRefreshing,
-        dbError,
-        addTransaction,
-        updateTransaction,
-        deleteTransaction,
-        refresh: () => fetchData(session.user.id),
-        sync
-    };
+        if (updateError) throw updateError;
+
+        setTransactions(prev =>
+          prev.map(t => (t.id === id ? data : t))
+        );
+
+        return data;
+      } catch (err: any) {
+        setError(err.message || 'Erro ao atualizar transação');
+        throw err;
+      }
+    },
+    [userId, supabase]
+  );
+
+  return {
+    transactions,
+    loading,
+    error,
+    addTransaction,
+    deleteTransaction,
+    updateTransaction,
+    refetch: fetchTransactions,
+  };
 };
