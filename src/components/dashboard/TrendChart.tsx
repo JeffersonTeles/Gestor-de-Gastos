@@ -2,14 +2,14 @@
 
 import { Transaction } from '@/lib/types';
 import {
-    CartesianGrid,
-    Legend,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
 
 interface TrendChartProps {
@@ -60,7 +60,7 @@ export const TrendChart = ({ transactions, period = 'month' }: TrendChartProps) 
   if (chartData.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-8 text-center">
-        <p className="text-gray-500">Nenhum dado para exibir</p>
+        <p className="text-gray-500">Sem dados para o gráfico. Adicione transações para começar.</p>
       </div>
     );
   }
@@ -88,7 +88,10 @@ export const TrendChart = ({ transactions, period = 'month' }: TrendChartProps) 
               tickFormatter={value => `R$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              formatter={(value) => [`R$ ${(value || 0).toFixed(2)}`, '']}
+              formatter={(value) => {
+                const numericValue = typeof value === 'number' ? value : Number(value || 0);
+                return [`R$ ${numericValue.toFixed(2)}`, ''];
+              }}
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #e5e7eb',

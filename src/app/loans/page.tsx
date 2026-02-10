@@ -6,7 +6,7 @@ import { LoansList } from '@/components/dashboard/LoansList';
 import { PaymentModal } from '@/components/dashboard/PaymentModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useLoans } from '@/hooks/useLoans';
-import { Loan } from '@/types';
+import { Loan } from '@/types/index';
 import Link from 'next/link';
 import { useState } from 'react';
 

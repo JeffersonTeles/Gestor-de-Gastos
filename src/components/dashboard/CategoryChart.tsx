@@ -33,7 +33,7 @@ export const CategoryChart = ({ transactions, type = 'all' }: CategoryChartProps
   if (chartData.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-8 text-center">
-        <p className="text-gray-500">Nenhum dado para exibir</p>
+        <p className="text-gray-500">Sem dados para o gráfico. Adicione transações para começar.</p>
       </div>
     );
   }
@@ -78,10 +78,13 @@ export const CategoryChart = ({ transactions, type = 'all' }: CategoryChartProps
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => [
-                `R$ ${(value || 0).toFixed(2)} (${(((value || 0) / total) * 100).toFixed(1)}%)`,
-                '',
-              ]}
+              formatter={(value) => {
+                const numericValue = typeof value === 'number' ? value : Number(value || 0);
+                return [
+                  `R$ ${numericValue.toFixed(2)} (${((numericValue / total) * 100).toFixed(1)}%)`,
+                  '',
+                ];
+              }}
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #e5e7eb',

@@ -1,6 +1,6 @@
 'use client';
 
-import { Loan } from '@/types';
+import { Loan } from '@/types/index';
 import { useCallback, useEffect, useState } from 'react';
 
 export const useLoans = (userId: string | undefined) => {

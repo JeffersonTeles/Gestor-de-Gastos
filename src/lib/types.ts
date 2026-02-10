@@ -9,6 +9,8 @@ export interface Transaction {
   category: string;
   description: string;
   date: string;
+  tags?: string[];
+  notes?: string | null;
   created_at: string;
   updated_at: string;
 }

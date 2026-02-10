@@ -1,6 +1,6 @@
 'use client';
 
-import { Loan } from '@/types';
+import { Loan } from '@/types/index';
 import { useEffect, useState } from 'react';
 
 interface LoanModalProps {

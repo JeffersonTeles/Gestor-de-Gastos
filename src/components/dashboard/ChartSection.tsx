@@ -23,7 +23,7 @@ export const ChartSection = ({ transactions }: ChartSectionProps) => {
   if (monthlyData.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-8 text-center">
-        <p className="text-gray-500">Nenhum dado para exibir no gráfico</p>
+        <p className="text-gray-500">Sem dados para o gráfico. Adicione transações para começar.</p>
       </div>
     );
   }

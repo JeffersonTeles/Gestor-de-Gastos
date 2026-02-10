@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
-import { Transaction } from '@/types';
+import { Transaction } from '@/types/index';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

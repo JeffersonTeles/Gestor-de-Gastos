@@ -23,15 +23,6 @@ interface TransactionModalProps {
   mode?: 'create' | 'edit';
 }
 
-interface TransactionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: TransactionData) => Promise<void>;
-  loading?: boolean;
-  transaction?: TransactionData | null;
-  mode?: 'create' | 'edit';
-}
-
 export const TransactionModal = ({
   isOpen,
   onClose,
@@ -76,9 +67,6 @@ export const TransactionModal = ({
       setNotes('');
     }
   }, [mode, transaction, isOpen]);
-
-  const categories =
-    type === 'income' ? CATEGORIES_INCOME : CATEGORIES_EXPENSE;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
