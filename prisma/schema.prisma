@@ -1,0 +1,146 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas  = ["public", "auth"]
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  email     String   @unique
+  name      String?
+  currency  String   @default("BRL")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+  budgets      Budget[]
+  auditLogs    AuditLog[]
+  categories   Category[]
+  loans        Loan[]
+
+  @@map("user_profiles")
+  @@schema("public")
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("BRL")
+  category    String
+  description String   @db.VarChar(255)
+  type        String   // "income" ou "expense"
+  date        DateTime
+  tags        String[] @default([])
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@map("transactions")
+  @@schema("public")
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String
+  limit     Decimal  @db.Decimal(12, 2)
+  month     DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, month])
+  @@index([userId])
+  @@map("budgets")
+  @@schema("public")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  resource  String
+  changes   Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+  @@schema("public")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  type      String   // "income" ou "expense" ou "both"
+  icon      String?  // emoji ou nome do ícone
+  color     String?  // código de cor hex
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+  @@schema("public")
+}
+
+model Loan {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // "lent" (emprestado para alguém) ou "borrowed" (emprestado de alguém)
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("BRL")
+  person      String   // nome da pessoa
+  description String?  @db.VarChar(255)
+  status      String   @default("pending") // "pending", "partial", "paid"
+  paidAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  loanDate    DateTime
+  dueDate     DateTime?
+  returnDate  DateTime?
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments    LoanPayment[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("loans")
+  @@schema("public")
+}
+
+model LoanPayment {
+  id          String   @id @default(uuid())
+  loanId      String
+  amount      Decimal  @db.Decimal(12, 2)
+  paymentDate DateTime
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  loan        Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([loanId])
+  @@map("loan_payments")
+  @@schema("public")
+}
