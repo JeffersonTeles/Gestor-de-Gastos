@@ -1,7 +1,7 @@
 'use client';
 
-import { Transaction } from '@/lib/types';
 import { formatCurrency, formatDate, getCategoryEmoji } from '@/lib/utils';
+import { Transaction } from '@/types/index';
 
 interface TransactionsListProps {
   transactions: Transaction[];

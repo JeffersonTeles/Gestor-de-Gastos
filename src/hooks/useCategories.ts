@@ -18,12 +18,38 @@ export const useCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSupabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const DEFAULT_CATEGORIES: Category[] = [
+    { id: 'exp-food', userId: 'demo', name: 'Alimentacao', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-transport', userId: 'demo', name: 'Transporte', type: 'expense', icon: '🚗', color: '#f97316', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-health', userId: 'demo', name: 'Saude', type: 'expense', icon: '🏥', color: '#ec4899', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-edu', userId: 'demo', name: 'Educacao', type: 'expense', icon: '📚', color: '#8b5cf6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-fun', userId: 'demo', name: 'Diversao', type: 'expense', icon: '🎮', color: '#6366f1', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-shop', userId: 'demo', name: 'Shopping', type: 'expense', icon: '🛍️', color: '#06b6d4', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-home', userId: 'demo', name: 'Casa', type: 'expense', icon: '🏠', color: '#14b8a6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-utils', userId: 'demo', name: 'Utilidades', type: 'expense', icon: '💡', color: '#10b981', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-bills', userId: 'demo', name: 'Conta', type: 'expense', icon: '📄', color: '#84cc16', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-other', userId: 'demo', name: 'Outro', type: 'expense', icon: '📌', color: '#64748b', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-salary', userId: 'demo', name: 'Salario', type: 'income', icon: '💰', color: '#22c55e', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-freelance', userId: 'demo', name: 'Freelance', type: 'income', icon: '💼', color: '#10b981', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-invest', userId: 'demo', name: 'Investimento', type: 'income', icon: '📈', color: '#14b8a6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-refund', userId: 'demo', name: 'Devolucao', type: 'income', icon: '🔄', color: '#06b6d4', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-other', userId: 'demo', name: 'Outro', type: 'income', icon: '✨', color: '#64748b', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+  ];
 
   // Buscar categorias
   const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+
+      if (!isSupabaseConfigured) {
+        setCategories(DEFAULT_CATEGORIES);
+        return;
+      }
 
       const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Erro ao buscar categorias');
@@ -32,6 +58,7 @@ export const useCategories = () => {
       setCategories(data);
     } catch (err: any) {
       setError(err.message || 'Erro ao buscar categorias');
+      setCategories(DEFAULT_CATEGORIES);
     } finally {
       setLoading(false);
     }

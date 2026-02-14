@@ -12,6 +12,7 @@ interface TransactionData {
   date: string;
   tags?: string[];
   notes?: string;
+  isRecurring?: boolean;
 }
 
 interface TransactionModalProps {
@@ -21,6 +22,7 @@ interface TransactionModalProps {
   loading?: boolean;
   transaction?: TransactionData | null;
   mode?: 'create' | 'edit';
+  defaultType?: 'income' | 'expense';
 }
 
 export const TransactionModal = ({
@@ -30,21 +32,52 @@ export const TransactionModal = ({
   loading,
   transaction,
   mode = 'create',
+  defaultType = 'expense',
 }: TransactionModalProps) => {
   const { getCategoriesByType } = useCategories();
-  const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [type, setType] = useState<'income' | 'expense'>(defaultType);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(
     new Date().toISOString().split('T')[0]
   );
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [notes, setNotes] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
   const [error, setError] = useState('');
+
+  // Tags sugeridas
+  const SUGGESTED_TAGS = [
+    '🏠 Casa',
+    '🚗 Transporte',
+    '🍔 Alimentação',
+    '💼 Trabalho',
+    '🎓 Educação',
+    '💳 Recorrente',
+    '⚡ Urgente',
+    '🎯 Meta',
+    '🎁 Presente',
+    '🏥 Saúde',
+  ];
 
   // Obter categorias do tipo selecionado
   const categories = getCategoriesByType(type);
+
+  // Reset tipo baseado no defaultType quando modal abre
+  useEffect(() => {
+    if (isOpen && mode === 'create') {
+      setType(defaultType);
+    }
+  }, [isOpen, mode, defaultType]);
+
+  useEffect(() => {
+    if (!isOpen || mode !== 'create') return;
+    if (!category && categories.length > 0) {
+      setCategory(categories[0].name);
+    }
+  }, [categories, category, isOpen, mode]);
 
   // Atualizar formulário quando em modo edição
   useEffect(() => {
@@ -93,8 +126,9 @@ export const TransactionModal = ({
         category,
         description: description.trim(),
         date,
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        tags: tags,
         notes: notes.trim() || undefined,
+        isRecurring,
       };
 
       if (mode === 'edit' && transaction?.id) {
@@ -109,8 +143,10 @@ export const TransactionModal = ({
         setCategory('');
         setDescription('');
         setDate(new Date().toISOString().split('T')[0]);
-        setTags('');
+        setTags([]);
+        setTagInput('');
         setNotes('');
+        setIsRecurring(false);
       }
       
       onClose();
@@ -122,16 +158,17 @@ export const TransactionModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center">
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full bg-white rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
-        <div className="max-w-md mx-auto">
+      <div className="relative w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto glass-panel">
+        <div className="max-w-xl mx-auto">
+          <div className="h-1.5 w-12 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden" />
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
@@ -156,8 +193,8 @@ export const TransactionModal = ({
                 }}
                 className={`py-3 px-4 rounded-lg font-semibold transition ${
                   type === 'expense'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 Despesa 📉
@@ -170,8 +207,8 @@ export const TransactionModal = ({
                 }}
                 className={`py-3 px-4 rounded-lg font-semibold transition ${
                   type === 'income'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 text-slate-700'
                 }`}
               >
                 Receita 📈
@@ -180,7 +217,7 @@ export const TransactionModal = ({
 
             {/* Valor */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
                 Valor (R$)
               </label>
               <input
@@ -190,19 +227,19 @@ export const TransactionModal = ({
                 placeholder="0,00"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
               />
             </div>
 
             {/* Categoria */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
                 Categoria
               </label>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
               >
                 <option value="">Escolha uma categoria</option>
                 {categories.map(cat => (
@@ -215,7 +252,7 @@ export const TransactionModal = ({
 
             {/* Descrição */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
                 Descrição
               </label>
               <input
@@ -223,54 +260,125 @@ export const TransactionModal = ({
                 placeholder="Ex: Almoço com a família"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
               />
             </div>
 
-            {/* Data */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Data
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* Data e tipo de despesa */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                  Data
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                  Tipo de despesa
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsRecurring(!isRecurring)}
+                  className={`w-full h-[50px] rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                    isRecurring
+                      ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {isRecurring ? '💳 Fixa/Recorrente' : '💸 Variável'}
+                </button>
+              </div>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags (separadas por vírgula)
+              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
+                🔖 Tags
               </label>
+              
+              {/* Tags selecionadas */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-medium rounded-full shadow-sm"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => setTags(tags.filter((_, i) => i !== index))}
+                        className="ml-1 hover:bg-white/20 rounded-full w-4 h-4 flex items-center justify-center transition"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* Input de nova tag */}
               <input
                 type="text"
-                placeholder="Ex: trabalho, importante"
-                value={tags}
-                onChange={e => setTags(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Digite e pressione Enter..."
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const newTag = tagInput.trim();
+                    if (newTag && !tags.includes(newTag)) {
+                      setTags([...tags, newTag]);
+                      setTagInput('');
+                    }
+                  }
+                }}
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
               />
+              
+              {/* Tags sugeridas */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                <span className="text-xs text-slate-500">Sugestões:</span>
+                {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 5).map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      if (!tags.includes(tag)) {
+                        setTags([...tags, tag]);
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200 transition"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Notas */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
                 Notas (opcional)
               </label>
               <textarea
-                placeholder="Observações adicionais..."
+                placeholder="Observacoes adicionais..."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none bg-white"
               />
             </div>
 
             {/* Erro */}
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
@@ -280,14 +388,14 @@ export const TransactionModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="py-3 px-4 bg-gray-200 text-gray-900 rounded-lg font-semibold hover:bg-gray-300 transition"
+                className="py-3 px-4 bg-slate-100 text-slate-700 rounded-2xl font-semibold hover:bg-slate-200 transition"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="py-3 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition"
+                className="py-3 px-4 bg-emerald-600 text-white rounded-2xl font-semibold hover:bg-emerald-700 disabled:opacity-50 transition"
               >
                 {loading ? 'Salvando...' : 'Salvar'}
               </button>

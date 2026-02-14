@@ -1,6 +1,6 @@
 'use client';
 
-import { Transaction } from '@/lib/types';
+import { Transaction } from '@/types/index';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface CategoryChartProps {

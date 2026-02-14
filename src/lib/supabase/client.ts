@@ -12,7 +12,13 @@ export const createClient = () => {
         signOut: async () => ({ error: null }),
         getUser: async () => ({ data: { user: null }, error: null }),
         getSession: async () => ({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } }),
+        onAuthStateChange: () => ({ 
+          data: { 
+            subscription: { 
+              unsubscribe: () => undefined 
+            } 
+          } 
+        }),
       },
     } as any;
   }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,17 +13,101 @@ html {
 }
 
 body {
-  @apply bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 transition-colors;
-  font-family: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  background-image:
-    radial-gradient(900px 300px at 10% -10%, #dbeafe 0%, transparent 60%),
-    radial-gradient(900px 300px at 90% -20%, #fef3c7 0%, transparent 55%);
-  background-attachment: fixed;
+  @apply text-neutral-900 antialiased;
+  font-family: var(--font-primary);
+  background: #fafbfc;
 }
 
-h1, h2, h3 {
-  font-family: 'DM Serif Display', ui-serif, Georgia, serif;
-  letter-spacing: 0.2px;
+:root {
+  /* Design System - Paleta de Cores Própria */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+  
+  --success-50: #f0fdf4;
+  --success-100: #dcfce7;
+  --success-200: #bbf7d0;
+  --success-500: #22c55e;
+  --success-600: #16a34a;
+  --success-700: #15803d;
+  
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-200: #fecaca;
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  --danger-700: #b91c1c;
+  
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-200: #fde68a;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1e293b;
+  --neutral-900: #0f172a;
+  
+  /* Tipografia */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Espaçamento */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Layout */
+  --sidebar-width: 280px;
+  --topbar-height: 72px;
+
+  /* Legacy (compatibilidade) */
+  --ink: #0f172a;
+  --paper: #ffffff;
+  --muted: #64748b;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: rgba(15, 23, 42, 0.08);
+  --accent: #2563eb;
+  --accent-2: #f59e0b;
+  --shadow-soft: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 0 1px rgba(148, 163, 184, 0.1), 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--neutral-900);
 }
 
 button:focus-visible,
@@ -31,17 +115,282 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--primary-500);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: #bfdbfe;
-  color: #0f172a;
+  background: var(--primary-100);
+  color: var(--neutral-900);
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-    background-image: none;
+/* Card System */
+.card {
+  @apply bg-white rounded-xl border border-neutral-200 shadow-sm;
+  padding: var(--spacing-lg);
+}
+
+.card-hover {
+  @apply card transition-all duration-200 hover:shadow-md hover:border-neutral-300;
+}
+
+/* Glass Panel (atualizado) */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--neutral-200);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
+}
+
+/* Button System */
+.btn-primary {
+  @apply px-4 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors shadow-sm;
+}
+
+.btn-secondary {
+  @apply px-4 py-2.5 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 active:bg-neutral-300 transition-colors;
+}
+
+.btn-ghost {
+  @apply px-4 py-2.5 text-neutral-700 font-medium rounded-lg hover:bg-neutral-100 active:bg-neutral-200 transition-colors;
+}
+
+.btn-danger {
+  @apply px-4 py-2.5 bg-danger-600 text-white font-medium rounded-lg hover:bg-danger-700 active:bg-danger-800 transition-colors shadow-sm;
+}
+
+/* Metric Card */
+.metric-card {
+  @apply card-hover flex flex-col;
+}
+
+.metric-card-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.metric-card-icon {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center text-2xl;
+}
+
+.metric-card-value {
+  @apply text-3xl font-bold;
+}
+
+.metric-card-label {
+  @apply text-sm font-medium text-neutral-500 uppercase tracking-wide;
+}
+
+.metric-card-change {
+  @apply text-sm font-medium flex items-center gap-1 mt-2;
+}
+
+/* Layout com Sidebar */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  width: var(--sidebar-width);
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+.app-main-wrapper {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-topbar {
+  height: var(--topbar-height);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.app-content {
+  flex: 1;
+  padding: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: 50;
   }
+  
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .app-main-wrapper {
+    margin-left: 0;
+  }
+}
+
+/* ===== DARK MODE ===== */
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+}
+
+.dark body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark .card,
+.dark .app-sidebar,
+.dark .app-topbar {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.dark .card-hover:hover {
+  background: #293548;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.transition-all-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Swipe Gestures */
+.swipeable {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+
+.swipeable.swiped .swipe-actions {
+  transform: translateX(0);
+}
+
+/* Smooth Page Transitions */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Loading Shimmer Effect */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.2) 0%,
+    rgba(226, 232, 240, 0.5) 50%,
+    rgba(226, 232, 240, 0.2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

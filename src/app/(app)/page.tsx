@@ -10,10 +10,11 @@ import { TransactionsList } from '@/components/dashboard/TransactionsList';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
-import { exportToCSV } from '@/lib/utils';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { transactions, addTransaction, deleteTransaction, updateTransaction, loading } =
     useTransactions(user?.id);
@@ -24,10 +25,16 @@ export default function DashboardPage() {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [activeTab, setActiveTab] = useState<'overview' | 'charts'>('overview');
 
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/login');
+    }
+  }, [user, router]);
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Carregando...</p>
+        <p className="text-gray-500">Redirecionando para login...</p>
       </div>
     );
   }
@@ -44,22 +51,24 @@ export default function DashboardPage() {
         // Atualizar transação existente
         await updateTransaction(editingTransaction.id, {
           type: data.type,
-          amount: data.amount,
+          amount: parseFloat(data.amount),
           category: data.category,
           description: data.description,
-          date: new Date(data.date).toISOString(),
+          date: data.date,
           tags: data.tags || [],
           notes: data.notes || null,
-          updated_at: new Date().toISOString(),
         });
       } else {
         // Criar nova transação
         await addTransaction({
-          user_id: user.id,
-          ...data,
-          date: new Date(data.date).toISOString(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          type: data.type,
+          amount: parseFloat(data.amount),
+          category: data.category,
+          description: data.description,
+          date: data.date,
+          currency: 'BRL',
+          tags: data.tags || [],
+          notes: data.notes || null,
         });
       }
       setIsModalOpen(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCategories } from '@/hooks/useCategories';
-import { Transaction } from '@/lib/types';
+import { Transaction } from '@/types/index';
 import { useState } from 'react';
 
 interface FilterBarProps {

@@ -1,7 +1,7 @@
 'use client';
 
-import { Transaction } from '@/lib/types';
 import { formatMonth, groupByMonth } from '@/lib/utils';
+import { Transaction } from '@/types/index';
 import {
     Bar,
     BarChart,

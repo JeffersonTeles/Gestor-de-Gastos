@@ -1,16 +1,41 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
-import { Transaction } from '@/lib/types';
+import { Transaction } from '@/types/index';
 import { useCallback, useEffect, useState } from 'react';
 
 export const useTransactions = (userId: string | undefined) => {
-  const supabase = createClient();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSupabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
-  // Buscar transações
+  const getStorageKey = useCallback(() => {
+    return userId ? `transactions_${userId}` : 'transactions_anon';
+  }, [userId]);
+
+  const readLocalTransactions = useCallback((): Transaction[] => {
+    if (typeof window === 'undefined') return [];
+    const raw = localStorage.getItem(getStorageKey());
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [getStorageKey]);
+
+  const writeLocalTransactions = useCallback(
+    (items: Transaction[]) => {
+      if (typeof window === 'undefined') return;
+      localStorage.setItem(getStorageKey(), JSON.stringify(items));
+    },
+    [getStorageKey]
+  );
+
+  // Buscar transações via API
   const fetchTransactions = useCallback(async () => {
     if (!userId) return;
 
@@ -18,90 +43,165 @@ export const useTransactions = (userId: string | undefined) => {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(100);
+      if (!isSupabaseConfigured) {
+        const localItems = readLocalTransactions();
+        setTransactions(localItems);
+        return;
+      }
 
-      if (fetchError) throw fetchError;
-      setTransactions(data || []);
+      const response = await fetch('/api/transactions');
+      if (!response.ok) throw new Error('Erro ao buscar transações');
+
+      const data = await response.json();
+      setTransactions(data);
     } catch (err: any) {
       setError(err.message || 'Erro ao buscar transações');
+      const localItems = readLocalTransactions();
+      setTransactions(localItems);
     } finally {
       setLoading(false);
     }
-  }, [userId, supabase]);
+  }, [userId]);
 
   // Buscar ao montar
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // Adicionar transação
+  // Adicionar transação via API
   const addTransaction = useCallback(
-    async (transaction: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>) => {
+    async (transaction: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
       try {
         setError(null);
 
-        const { data, error: insertError } = await supabase
-          .from('transactions')
-          .insert([transaction])
-          .select()
-          .single();
+        if (!isSupabaseConfigured) {
+          const now = new Date().toISOString();
+          const id = typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `tx-${Date.now()}`;
+          const newItem: Transaction = {
+            id,
+            userId: userId || 'demo-user-123',
+            amount: Number(transaction.amount) || 0,
+            currency: transaction.currency || 'BRL',
+            category: transaction.category,
+            description: transaction.description,
+            type: transaction.type,
+            date: transaction.date as any,
+            tags: transaction.tags || [],
+            notes: transaction.notes,
+            createdAt: now as any,
+            updatedAt: now as any,
+          };
 
-        if (insertError) throw insertError;
+          const updated = [newItem, ...readLocalTransactions()];
+          writeLocalTransactions(updated);
+          setTransactions(updated);
+          return newItem;
+        }
 
+        const response = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(transaction),
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao adicionar transação');
+        }
+
+        const data = await response.json();
         setTransactions(prev => [data, ...prev]);
         return data;
       } catch (err: any) {
         setError(err.message || 'Erro ao adicionar transação');
-        throw err;
+        const now = new Date().toISOString();
+        const id = typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `tx-${Date.now()}`;
+        const newItem: Transaction = {
+          id,
+          userId: userId || 'demo-user-123',
+          amount: Number(transaction.amount) || 0,
+          currency: transaction.currency || 'BRL',
+          category: transaction.category,
+          description: transaction.description,
+          type: transaction.type,
+          date: transaction.date as any,
+          tags: transaction.tags || [],
+          notes: transaction.notes,
+          createdAt: now as any,
+          updatedAt: now as any,
+        };
+        const updated = [newItem, ...readLocalTransactions()];
+        writeLocalTransactions(updated);
+        setTransactions(updated);
+        return newItem;
       }
     },
-    [supabase]
+    []
   );
 
-  // Deletar transação
+  // Deletar transação via API
   const deleteTransaction = useCallback(
     async (id: string) => {
       try {
         setError(null);
 
-        const { error: deleteError } = await supabase
-          .from('transactions')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', userId);
+        if (!isSupabaseConfigured) {
+          const updated = readLocalTransactions().filter(t => t.id !== id);
+          writeLocalTransactions(updated);
+          setTransactions(updated);
+          return;
+        }
 
-        if (deleteError) throw deleteError;
+        const response = await fetch(`/api/transactions/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao deletar transação');
+        }
 
         setTransactions(prev => prev.filter(t => t.id !== id));
       } catch (err: any) {
         setError(err.message || 'Erro ao deletar transação');
-        throw err;
+        const updated = readLocalTransactions().filter(t => t.id !== id);
+        writeLocalTransactions(updated);
+        setTransactions(updated);
       }
     },
-    [userId, supabase]
+    []
   );
 
-  // Atualizar transação
+  // Atualizar transação via API
   const updateTransaction = useCallback(
     async (id: string, updates: Partial<Transaction>) => {
       try {
         setError(null);
 
-        const { data, error: updateError } = await supabase
-          .from('transactions')
-          .update(updates)
-          .eq('id', id)
-          .eq('user_id', userId)
-          .select()
-          .single();
+        if (!isSupabaseConfigured) {
+          const updatedAt = new Date().toISOString();
+          const items = readLocalTransactions().map(item =>
+            item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
+          );
+          writeLocalTransactions(items);
+          const updatedItem = items.find(item => item.id === id);
+          setTransactions(items);
+          return updatedItem as Transaction;
+        }
 
-        if (updateError) throw updateError;
+        const response = await fetch(`/api/transactions/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
 
+        if (!response.ok) {
+          throw new Error('Erro ao atualizar transação');
+        }
+
+        const data = await response.json();
         setTransactions(prev =>
           prev.map(t => (t.id === id ? data : t))
         );
@@ -109,10 +209,17 @@ export const useTransactions = (userId: string | undefined) => {
         return data;
       } catch (err: any) {
         setError(err.message || 'Erro ao atualizar transação');
-        throw err;
+        const updatedAt = new Date().toISOString();
+        const items = readLocalTransactions().map(item =>
+          item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
+        );
+        writeLocalTransactions(items);
+        const updatedItem = items.find(item => item.id === id);
+        setTransactions(items);
+        return updatedItem as Transaction;
       }
     },
-    [userId, supabase]
+    []
   );
 
   return {

@@ -5,6 +5,16 @@ export interface User {
   name?: string;
 }
 
+// Type aliases
+export type TransactionType = 'income' | 'expense';
+
+// Monthly Data for charts
+export interface MonthlyData {
+  month: string;
+  income: number;
+  expense: number;
+}
+
 // Category Types
 export interface Category {
   id: string;
@@ -45,6 +55,63 @@ export interface LoanPayment {
   paymentDate: Date;
   notes?: string;
   createdAt: Date;
+}
+
+// Bills Types
+export interface Bill {
+  id: string;
+  userId: string;
+  type: 'payable' | 'receivable';
+  amount: number;
+  currency: string;
+  category: string;
+  description: string;
+  status: 'open' | 'paid' | 'overdue' | 'canceled';
+  dueDate: Date;
+  paidAt?: Date | null;
+  notes?: string;
+  recurrenceId?: string | null;
+  recurrence?: BillRecurrence;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BillRecurrence {
+  id: string;
+  userId: string;
+  type: 'payable' | 'receivable';
+  amount: number;
+  currency: string;
+  category: string;
+  description: string;
+  notes?: string;
+  frequency: 'weekly' | 'monthly' | 'yearly';
+  interval: number;
+  startDate: Date;
+  nextDueDate: Date;
+  endDate?: Date | null;
+  status: 'active' | 'completed' | 'paused';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BillPayload {
+  id?: string;
+  type?: 'payable' | 'receivable';
+  amount?: number;
+  currency?: string;
+  category?: string;
+  description?: string;
+  status?: 'open' | 'paid' | 'overdue' | 'canceled';
+  dueDate?: Date | string;
+  paidAt?: Date | null;
+  notes?: string;
+  recurrenceId?: string | null;
+  recurrence?: {
+    frequency: 'weekly' | 'monthly' | 'yearly';
+    interval?: number;
+    endDate?: string;
+  };
 }
 
 // Transaction Types

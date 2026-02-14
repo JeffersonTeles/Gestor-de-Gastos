@@ -1,7 +1,7 @@
 'use client';
 
-import { Transaction } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { Transaction } from '@/types/index';
 
 interface BalanceCardProps {
   transactions: Transaction[];

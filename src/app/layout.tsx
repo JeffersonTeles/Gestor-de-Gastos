@@ -1,5 +1,6 @@
-import { AppProvider } from '@/contexts/AppContext';
+import { ClientProviders } from '@/components/ClientProviders';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,10 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className="bg-gray-50">
-        <AppProvider>
-          {children}
-        </AppProvider>
+      <body className="page-shell">
+        <ClientProviders>
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
+        </ClientProviders>
       </body>
     </html>
   );

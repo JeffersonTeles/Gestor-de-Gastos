@@ -1,16 +1,18 @@
 'use client';
 
-import { Header } from '@/components/dashboard/Header';
 import { LoanModal } from '@/components/dashboard/LoanModal';
 import { LoansList } from '@/components/dashboard/LoansList';
 import { PaymentModal } from '@/components/dashboard/PaymentModal';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Topbar } from '@/components/layout/Topbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useLoans } from '@/hooks/useLoans';
 import { Loan } from '@/types/index';
-import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function LoansPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { loans, addLoan, deleteLoan, updateLoan, addPayment, loading } = useLoans(user?.id);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
@@ -20,10 +22,16 @@ export default function LoansPage() {
   const [payingLoan, setPayingLoan] = useState<Loan | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/login');
+    }
+  }, [user, router]);
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Carregando...</p>
+        <p className="text-gray-500">Redirecionando...</p>
       </div>
     );
   }
@@ -110,70 +118,63 @@ export default function LoansPage() {
   const borrowedPending = totals.borrowed - totals.borrowedPaid;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      {/* Navigation Tabs */}
-      <div className="bg-white/90 backdrop-blur border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-2 flex gap-2">
-          <Link
-            href="/dashboard"
-            className="flex-1 py-3 text-center text-sm font-semibold rounded-full text-gray-600 hover:bg-gray-100 transition"
-          >
-            ← Dashboard
-          </Link>
-          <div className="flex-1 py-3 text-center text-sm font-semibold rounded-full bg-blue-600 text-white shadow-sm">
-            Empréstimos
-          </div>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="max-w-md mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {/* Emprestei */}
-          <div className="bg-gradient-to-br from-green-500 to-green-700 p-4 rounded-2xl text-white shadow-sm">
-            <p className="text-xs uppercase tracking-wide opacity-90 mb-1">💸 Emprestei</p>
-            <p className="text-2xl font-bold mb-1">
-              R$ {totals.lent.toFixed(2)}
-            </p>
-            <p className="text-xs opacity-90">
-              Pendente: R$ {lentPending.toFixed(2)}
-            </p>
-          </div>
-
-          {/* Peguei */}
-          <div className="bg-gradient-to-br from-orange-500 to-orange-700 p-4 rounded-2xl text-white shadow-sm">
-            <p className="text-xs uppercase tracking-wide opacity-90 mb-1">🤝 Peguei</p>
-            <p className="text-2xl font-bold mb-1">
-              R$ {totals.borrowed.toFixed(2)}
-            </p>
-            <p className="text-xs opacity-90">
-              Pendente: R$ {borrowedPending.toFixed(2)}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <main className="pb-32">
-        <LoansList
-          loans={loans}
-          onDelete={handleDeleteLoan}
-          onEdit={handleEditLoan}
-          onAddPayment={handleAddPayment}
-          loading={loading}
+    <div className="app-layout">
+      <Sidebar />
+      
+      <div className="app-main-wrapper">
+        <Topbar 
+          title="Empréstimos"
+          subtitle="Gestão de empréstimos dados e recebidos"
+          actions={
+            <button
+              onClick={() => setIsLoanModalOpen(true)}
+              className="btn-primary text-sm"
+            >
+              + Novo Empréstimo
+            </button>
+          }
         />
-      </main>
 
-      {/* Floating Button */}
-      <button
-        onClick={() => setIsLoanModalOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all font-bold"
-        title="Adicionar empréstimo"
-      >
-        +
-      </button>
+        <div className="app-content bg-neutral-50">
+          {/* Cards de Resumo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="card bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="metric-card-label">Emprestei</p>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success-50 to-success-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-success-600">R$ {totals.lent.toFixed(2)}</p>
+              <p className="text-sm text-neutral-500 mt-2">Pendente: R$ {lentPending.toFixed(2)}</p>
+            </div>
+
+            <div className="card bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="metric-card-label">Peguei Emprestado</p>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning-50 to-warning-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-warning-600">R$ {totals.borrowed.toFixed(2)}</p>
+              <p className="text-sm text-neutral-500 mt-2">Pendente: R$ {borrowedPending.toFixed(2)}</p>
+            </div>
+          </div>
+
+          {/* Lista de Empréstimos */}
+          <LoansList
+            loans={loans}
+            onDelete={handleDeleteLoan}
+            onEdit={handleEditLoan}
+            onAddPayment={handleAddPayment}
+            loading={loading}
+          />
+        </div>
+      </div>
 
       {/* Modals */}
       <LoanModal

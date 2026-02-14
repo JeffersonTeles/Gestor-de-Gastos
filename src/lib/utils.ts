@@ -1,5 +1,5 @@
 // Utilities para formatação e cálculos
-import { MonthlyData, Transaction, TransactionType } from './types';
+import { MonthlyData, Transaction, TransactionType } from '@/types/index';
 
 /**
  * Formata número como moeda BRL

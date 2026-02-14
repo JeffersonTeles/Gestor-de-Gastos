@@ -4,46 +4,48 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  schemas  = ["public", "auth"]
+  schemas   = ["public", "auth"]
 }
 
 model UserProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  email     String   @unique
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  email     String
   name      String?
-  currency  String   @default("BRL")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  currency  String?  @default("BRL")
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
-  transactions Transaction[]
-  budgets      Budget[]
-  auditLogs    AuditLog[]
-  categories   Category[]
-  loans        Loan[]
+  transactions   Transaction[]
+  budgets        Budget[]
+  auditLogs      AuditLog[]
+  categories     Category[]
+  loans          Loan[]
+  bills          Bill[]
+  billRecurrences BillRecurrence[]
 
   @@map("user_profiles")
   @@schema("public")
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
   amount      Decimal  @db.Decimal(12, 2)
-  currency    String   @default("BRL")
+  currency    String?  @default("BRL")
   category    String
   description String   @db.VarChar(255)
-  type        String   // "income" ou "expense"
-  date        DateTime
+  type        String
+  date        DateTime @db.Timestamp(6)
   tags        String[] @default([])
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  notes       String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
-  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -52,32 +54,31 @@ model Transaction {
 }
 
 model Budget {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
   category  String
-  limit     Decimal  @db.Decimal(12, 2)
-  month     DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  limit     Decimal  @map("limit_amount") @db.Decimal(12, 2)
+  month     DateTime @db.Timestamp(6)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
-  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@unique([userId, category, month])
   @@index([userId])
   @@map("budgets")
   @@schema("public")
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
   action    String
   resource  String
   changes   Json?
   ip        String?
-  createdAt DateTime @default(now())
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
-  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
@@ -86,42 +87,41 @@ model AuditLog {
 }
 
 model Category {
-  id        String   @id @default(uuid())
-  userId    String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
   name      String
-  type      String   // "income" ou "expense" ou "both"
-  icon      String?  // emoji ou nome do ícone
-  color     String?  // código de cor hex
-  isDefault Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  type      String?
+  icon      String?
+  color     String?
+  isDefault Boolean? @default(false) @map("is_default")
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
-  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@unique([userId, name])
   @@index([userId])
   @@map("categories")
   @@schema("public")
 }
 
 model Loan {
-  id          String   @id @default(uuid())
-  userId      String
-  type        String   // "lent" (emprestado para alguém) ou "borrowed" (emprestado de alguém)
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String
   amount      Decimal  @db.Decimal(12, 2)
-  currency    String   @default("BRL")
-  person      String   // nome da pessoa
+  currency    String?  @default("BRL")
+  person      String
   description String?  @db.VarChar(255)
-  status      String   @default("pending") // "pending", "partial", "paid"
-  paidAmount  Decimal  @default(0) @db.Decimal(12, 2)
-  loanDate    DateTime
-  dueDate     DateTime?
-  returnDate  DateTime?
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String?  @default("pending")
+  paidAmount  Decimal? @default(0) @map("paid_amount") @db.Decimal(12, 2)
+  loanDate    DateTime @map("loan_date") @db.Timestamp(6)
+  dueDate     DateTime? @map("due_date") @db.Timestamp(6)
+  returnDate  DateTime? @map("return_date") @db.Timestamp(6)
+  notes       String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
 
-  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
   payments    LoanPayment[]
 
   @@index([userId])
@@ -131,16 +131,66 @@ model Loan {
 }
 
 model LoanPayment {
-  id          String   @id @default(uuid())
-  loanId      String
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  loanId      String   @map("loan_id") @db.Uuid
   amount      Decimal  @db.Decimal(12, 2)
-  paymentDate DateTime
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
+  paymentDate DateTime @map("payment_date") @db.Timestamp(6)
+  notes       String?
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
   loan        Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
 
-  @@index([loanId])
   @@map("loan_payments")
+  @@schema("public")
+}
+
+model Bill {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String?  @default("BRL")
+  category    String
+  description String   @db.VarChar(255)
+  status      String?  @default("open")
+  dueDate     DateTime @map("due_date") @db.Timestamp(6)
+  paidAt      DateTime? @map("paid_at") @db.Timestamp(6)
+  notes       String?
+  recurrenceId String? @map("recurrence_id") @db.Uuid
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  user        UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("bills")
+  @@schema("public")
+}
+
+model BillRecurrence {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String?  @default("BRL")
+  category    String
+  description String   @db.VarChar(255)
+  notes       String?
+  frequency   String
+  interval    Int?     @default(1)
+  startDate   DateTime @map("start_date") @db.Timestamp(6)
+  nextDueDate DateTime @map("next_due_date") @db.Timestamp(6)
+  endDate     DateTime? @map("end_date") @db.Timestamp(6)
+  status      String?  @default("active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(6)
+
+  user        UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([nextDueDate])
+  @@map("bill_recurrences")
   @@schema("public")
 }

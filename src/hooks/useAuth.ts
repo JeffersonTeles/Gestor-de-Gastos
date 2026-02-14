@@ -1,5 +1,6 @@
 'use client';
 
+import { mockAuth } from '@/lib/mockAuth';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -11,25 +12,56 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const ensureProfile = useCallback(async (authUser: any) => {
+    if (!authUser?.id || !authUser?.email) return;
+    try {
+      await fetch('/api/user/create-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUser.id,
+          email: authUser.email,
+          name: authUser.user_metadata?.full_name || authUser.user_metadata?.name || null,
+          currency: 'BRL',
+        }),
+      });
+    } catch {
+      // Perfil e opcional; nao bloquear login
+    }
+  }, []);
+
   // Verificar session ao montar
   useEffect(() => {
+    let mounted = true;
     const supabase = createClient();
     
     const checkAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
         
-        if (data.session?.user) {
+        if (mounted && data.session?.user) {
+          await ensureProfile(data.session.user);
           setUser({
             id: data.session.user.id,
             email: data.session.user.email || '',
             full_name: data.session.user.user_metadata?.full_name,
           });
+        } else {
+          const mockUser = await mockAuth.getUser();
+          if (mounted && mockUser) {
+            setUser({
+              id: mockUser.id,
+              email: mockUser.email,
+              full_name: undefined,
+            });
+          }
         }
       } catch (err) {
         console.error('Auth error:', err);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -38,20 +70,25 @@ export const useAuth = () => {
     // Listen para mudanças de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event: string, session: any) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            full_name: session.user.user_metadata?.full_name,
-          });
-        } else {
-          setUser(null);
+        if (mounted) {
+          if (session?.user) {
+            await ensureProfile(session.user);
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.user_metadata?.full_name,
+            });
+          } else {
+            const mockUser = await mockAuth.getUser();
+            setUser(mockUser ? { id: mockUser.id, email: mockUser.email } : null);
+          }
         }
       }
     );
 
     return () => {
-      authListener?.subscription.unsubscribe();
+      mounted = false;
+      authListener?.subscription?.unsubscribe();
     };
   }, []);
 
@@ -70,13 +107,20 @@ export const useAuth = () => {
           },
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          const authResult = await mockAuth.signUp(email, password);
+          if (authResult.error) throw authResult.error;
+          await ensureProfile({ id: authResult.user?.id, email, user_metadata: { full_name: fullName } });
+        } else {
+          const { data } = await supabase.auth.getUser();
+          await ensureProfile(data.user);
+        }
         router.push('/');
       } catch (err: any) {
         setError(err.message || 'Erro ao cadastrar');
       }
     },
-    [router]
+    [router, ensureProfile]
   );
 
   const signIn = useCallback(
@@ -89,19 +133,27 @@ export const useAuth = () => {
           password,
         });
 
-        if (signInError) throw signInError;
+        if (signInError) {
+          const authResult = await mockAuth.signIn(email, password);
+          if (authResult.error) throw authResult.error;
+          await ensureProfile({ id: authResult.user?.id, email, user_metadata: {} });
+        } else {
+          const { data } = await supabase.auth.getUser();
+          await ensureProfile(data.user);
+        }
         router.push('/');
       } catch (err: any) {
         setError(err.message || 'Erro ao fazer login');
       }
     },
-    [router]
+    [router, ensureProfile]
   );
 
   const signOut = useCallback(async () => {
     const supabase = createClient();
     try {
       await supabase.auth.signOut();
+      await mockAuth.signOut();
       setUser(null);
       router.push('/auth/login');
     } catch (err: any) {
