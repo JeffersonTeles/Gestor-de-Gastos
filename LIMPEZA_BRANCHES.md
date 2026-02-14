@@ -66,7 +66,7 @@ gh api repos/JeffersonTeles/Gestor-de-Gastos/git/refs/heads/gh-pages -X DELETE
 Depois de deletar todas as branches exceto `main`, você terá:
 - Apenas a branch `main` restante
 - Uma estrutura de repositório mais limpa
-- Gerenciamento de branches mais fácil daqui pra frente
+- Gerenciamento de branches mais fácil daqui para frente
 
 ## Observações
 
