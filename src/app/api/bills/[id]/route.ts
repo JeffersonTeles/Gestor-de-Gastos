@@ -96,7 +96,7 @@ export async function PUT(
           const updatedNextDueDate = addInterval(
             nextDueDate,
             recurrence.frequency,
-            recurrence.interval
+            recurrence.interval || 1
           );
 
           const shouldComplete = endDate && updatedNextDueDate > endDate;

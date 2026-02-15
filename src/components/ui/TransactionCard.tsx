@@ -1,5 +1,7 @@
 'use client';
 
+import { formatPrice } from '@/lib/utils';
+
 interface TransactionCardProps {
   transaction: {
     id: string;
@@ -25,7 +27,7 @@ export const TransactionCard = ({ transaction, onEdit, onDelete }: TransactionCa
         <span className={`text-lg font-bold ${
           transaction.type === 'income' ? 'text-success-600' : 'text-danger-600'
         }`}>
-          {transaction.type === 'income' ? '+' : '-'}R$ {Math.abs(transaction.amount).toFixed(2)}
+          {transaction.type === 'income' ? '+' : '-'}R$ {formatPrice(Math.abs(transaction.amount))}
         </span>
       </div>
       

@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPrice } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 interface PieChartData {
@@ -147,7 +148,7 @@ export const PieChart = ({ data, title, className = '' }: PieChartProps) => {
               </div>
               <div className="text-right">
                 <div className="text-sm font-bold text-neutral-900 dark:text-white">
-                  R$ {Number(item.value).toFixed(2)}
+                  R$ {formatPrice(Number(item.value))}
                 </div>
                 <div className="text-xs text-neutral-500 dark:text-neutral-400">
                   {((item.value / chartData.reduce((sum, i) => sum + i.value, 0)) * 100).toFixed(1)}%

@@ -87,7 +87,7 @@ export const TransactionModal = ({
       setCategory(transaction.category);
       setDescription(transaction.description);
       setDate(transaction.date.split('T')[0]);
-      setTags(transaction.tags?.join(', ') || '');
+      setTags(transaction.tags || []);
       setNotes(transaction.notes || '');
     } else if (mode === 'create') {
       // Resetar formulário no modo criação
@@ -96,7 +96,7 @@ export const TransactionModal = ({
       setCategory('');
       setDescription('');
       setDate(new Date().toISOString().split('T')[0]);
-      setTags('');
+      setTags([]);
       setNotes('');
     }
   }, [mode, transaction, isOpen]);

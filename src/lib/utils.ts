@@ -3,11 +3,23 @@ import { MonthlyData, Transaction, TransactionType } from '@/types/index';
 
 /**
  * Formata número como moeda BRL
+ * Exemplo: 100.5 → "R$ 100,50"
  */
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
+  }).format(value);
+};
+
+/**
+ * Formata apenas o número com vírgula (sem "R$ ")
+ * Exemplo: 100.5 → "100,50"
+ */
+export const formatPrice = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 };
 

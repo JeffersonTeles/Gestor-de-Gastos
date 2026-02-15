@@ -1,12 +1,5 @@
 import { useMemo } from 'react';
-
-interface Transaction {
-  id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  date: string;
-}
+import type { Transaction } from '@/types/index';
 
 export interface Prediction {
   month: string;

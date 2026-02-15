@@ -1,7 +1,7 @@
 'use client';
 
-import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { ReactNode } from 'react';
 
 export function ClientProviders({ children }: { children: ReactNode }) {

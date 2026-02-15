@@ -10,6 +10,7 @@ import { TransactionsList } from '@/components/dashboard/TransactionsList';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
+import { exportToCSV } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 

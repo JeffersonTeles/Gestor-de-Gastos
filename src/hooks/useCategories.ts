@@ -23,20 +23,20 @@ export const useCategories = () => {
   );
 
   const DEFAULT_CATEGORIES: Category[] = [
-    { id: 'exp-food', userId: 'demo', name: 'Alimentacao', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-food', userId: 'demo', name: 'Alimentação', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-transport', userId: 'demo', name: 'Transporte', type: 'expense', icon: '🚗', color: '#f97316', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
-    { id: 'exp-health', userId: 'demo', name: 'Saude', type: 'expense', icon: '🏥', color: '#ec4899', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
-    { id: 'exp-edu', userId: 'demo', name: 'Educacao', type: 'expense', icon: '📚', color: '#8b5cf6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
-    { id: 'exp-fun', userId: 'demo', name: 'Diversao', type: 'expense', icon: '🎮', color: '#6366f1', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-health', userId: 'demo', name: 'Saúde', type: 'expense', icon: '🏥', color: '#ec4899', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-edu', userId: 'demo', name: 'Educação', type: 'expense', icon: '📚', color: '#8b5cf6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'exp-fun', userId: 'demo', name: 'Diversão', type: 'expense', icon: '🎮', color: '#6366f1', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-shop', userId: 'demo', name: 'Shopping', type: 'expense', icon: '🛍️', color: '#06b6d4', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-home', userId: 'demo', name: 'Casa', type: 'expense', icon: '🏠', color: '#14b8a6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-utils', userId: 'demo', name: 'Utilidades', type: 'expense', icon: '💡', color: '#10b981', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-bills', userId: 'demo', name: 'Conta', type: 'expense', icon: '📄', color: '#84cc16', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'exp-other', userId: 'demo', name: 'Outro', type: 'expense', icon: '📌', color: '#64748b', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
-    { id: 'inc-salary', userId: 'demo', name: 'Salario', type: 'income', icon: '💰', color: '#22c55e', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-salary', userId: 'demo', name: 'Salário', type: 'income', icon: '💰', color: '#22c55e', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'inc-freelance', userId: 'demo', name: 'Freelance', type: 'income', icon: '💼', color: '#10b981', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'inc-invest', userId: 'demo', name: 'Investimento', type: 'income', icon: '📈', color: '#14b8a6', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
-    { id: 'inc-refund', userId: 'demo', name: 'Devolucao', type: 'income', icon: '🔄', color: '#06b6d4', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+    { id: 'inc-refund', userId: 'demo', name: 'Devolução', type: 'income', icon: '🔄', color: '#06b6d4', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
     { id: 'inc-other', userId: 'demo', name: 'Outro', type: 'income', icon: '✨', color: '#64748b', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
   ];
 

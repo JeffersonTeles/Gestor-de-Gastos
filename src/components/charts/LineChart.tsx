@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPrice } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 interface LineChartData {
@@ -158,7 +159,7 @@ export const LineChart = ({ data, title, color = '#3b82f6', className = '' }: Li
             }}
           >
             <div className="font-semibold">{data[hoveredIndex].label}</div>
-            <div className="text-xs">R$ {data[hoveredIndex].value.toFixed(2)}</div>
+            <div className="text-xs">R$ {formatPrice(data[hoveredIndex].value)}</div>
           </div>
         )}
       </div>

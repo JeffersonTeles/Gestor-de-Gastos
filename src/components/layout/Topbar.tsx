@@ -1,9 +1,14 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { DarkModeToggle } from '@/components/ui/DarkModeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
+
+const DarkModeToggle = dynamic(
+  () => import('@/components/ui/DarkModeToggle').then(mod => ({ default: mod.DarkModeToggle })),
+  { ssr: false }
+);
 
 interface TopbarProps {
   title?: string;

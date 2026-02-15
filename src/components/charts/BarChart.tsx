@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPrice } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
 interface BarChartData {
@@ -156,11 +157,11 @@ export const BarChart = ({ data, title, className = '' }: BarChartProps) => {
             <div className="flex gap-4">
               <div>
                 <div className="text-xs text-neutral-400">Receitas</div>
-                <div className="text-success-400 font-bold">R$ {Number(data[hoveredIndex].income).toFixed(2)}</div>
+                <div className="text-success-400 font-bold">R$ {formatPrice(Number(data[hoveredIndex].income))}</div>
               </div>
               <div>
                 <div className="text-xs text-neutral-400">Despesas</div>
-                <div className="text-danger-400 font-bold">R$ {Number(data[hoveredIndex].expense).toFixed(2)}</div>
+                <div className="text-danger-400 font-bold">R$ {formatPrice(Number(data[hoveredIndex].expense))}</div>
               </div>
             </div>
           </div>

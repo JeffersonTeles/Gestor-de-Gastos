@@ -1,41 +1,43 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
+import { InsightsCard } from '@/components/analytics/InsightsCard';
+import { PredictionsCard } from '@/components/analytics/PredictionsCard';
+import { BarChart } from '@/components/charts/BarChart';
+import { LineChart } from '@/components/charts/LineChart';
+import { PieChart } from '@/components/charts/PieChart';
 import { ImportModal } from '@/components/dashboard/ImportModal';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts';
 import { TransactionModal } from '@/components/dashboard/TransactionModal';
 import { WeeklyReview } from '@/components/dashboard/WeeklyReview';
+import { WhatsAppIntegration } from '@/components/integrations/WhatsAppIntegration';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
-import { 
-  AdvancedFilters, 
-  EmptyTransactions, 
-  ExportButton, 
-  MetricCard, 
-  SkeletonMetricCard,
-  SkeletonTable,
-  TransactionCard 
+import {
+    AdvancedFilters,
+    EmptyTransactions,
+    ExportButton,
+    MetricCard,
+    SkeletonMetricCard,
+    SkeletonTable,
+    TransactionCard
 } from '@/components/ui';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useTransactions } from '@/hooks/useTransactions';
 import { useInsights } from '@/hooks/useInsights';
 import { usePredictions } from '@/hooks/usePredictions';
-import { PieChart } from '@/components/charts/PieChart';
-import { LineChart } from '@/components/charts/LineChart';
-import { BarChart } from '@/components/charts/BarChart';
-import { InsightsCard } from '@/components/analytics/InsightsCard';
-import { PredictionsCard } from '@/components/analytics/PredictionsCard';
-import { WhatsAppIntegration } from '@/components/integrations/WhatsAppIntegration';
+import { useTransactions } from '@/hooks/useTransactions';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { transactions, loading: transactionsLoading, addTransaction } = useTransactions(user?.id);
   const { showToast } = useToast();
   const [stats, setStats] = useState({
@@ -207,11 +209,6 @@ export default function DashboardPage() {
     );
   }
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/');
-  };
-
   const handleAddTransaction = async (data: any) => {
     setIsSaving(true);
     try {
@@ -292,11 +289,6 @@ export default function DashboardPage() {
     setFilteredTransactions(filtered);
   };
 
-  const openModalWithType = (type: 'income' | 'expense') => {
-    setModalType(type);
-    setIsModalOpen(true);
-  };
-
   const handleBulkImport = async (transactions: any[]) => {
     setIsSaving(true);
     let successCount = 0;
@@ -312,7 +304,6 @@ export default function DashboardPage() {
           date: tx.date,
           currency: 'BRL',
           tags: ['importado'],
-          notes: null,
         });
         successCount++;
       } catch (error) {
@@ -630,10 +621,9 @@ export default function DashboardPage() {
       <TransactionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleAddTransaction}
-        isSaving={isSaving}
-        type={modalType}
-        availableTags={allTags}
+        onSubmit={handleAddTransaction}
+        loading={isSaving}
+        defaultType={modalType}
       />
 
       <QuickActions
@@ -645,8 +635,13 @@ export default function DashboardPage() {
           setModalType('expense');
           setIsModalOpen(true);
         }}
+        onNewBill={() => {
+          // TODO: Abrir modal de nova conta
+        }}
+        onNewBudget={() => {
+          // TODO: Abrir modal de novo orçamento
+        }}
         onSearch={() => setIsSearchOpen(true)}
-        onImport={() => setIsImportOpen(true)}
       />
 
       <SearchBar
