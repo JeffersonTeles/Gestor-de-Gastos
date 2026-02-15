@@ -3,16 +3,13 @@
 import { LoanModal } from '@/components/dashboard/LoanModal';
 import { LoansList } from '@/components/dashboard/LoansList';
 import { PaymentModal } from '@/components/dashboard/PaymentModal';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useLoans } from '@/hooks/useLoans';
 import { Loan } from '@/types/index';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function LoansPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const { loans, addLoan, deleteLoan, updateLoan, addPayment, loading } = useLoans(user?.id);
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
@@ -21,20 +18,6 @@ export default function LoansPage() {
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
   const [payingLoan, setPayingLoan] = useState<Loan | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-    }
-  }, [user, router]);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Redirecionando...</p>
-      </div>
-    );
-  }
 
   const handleAddLoan = async (data: Partial<Loan>) => {
     setIsSaving(true);
@@ -95,7 +78,6 @@ export default function LoansPage() {
     setPayingLoan(null);
   };
 
-  // Calcular totais
   const totals = loans.reduce(
     (acc, loan) => {
       const amount = Number(loan.amount);
@@ -118,65 +100,58 @@ export default function LoansPage() {
   const borrowedPending = totals.borrowed - totals.borrowedPaid;
 
   return (
-    <div className="app-layout">
-      <Sidebar />
-      
-      <div className="app-main-wrapper">
-        <Topbar 
-          title="Empréstimos"
-          subtitle="Gestão de empréstimos dados e recebidos"
-          actions={
-            <button
-              onClick={() => setIsLoanModalOpen(true)}
-              className="btn-primary text-sm"
-            >
-              + Novo Empréstimo
-            </button>
-          }
-        />
+    <>
+      <Topbar 
+        title="Empréstimos"
+        subtitle="Gestão de empréstimos dados e recebidos"
+        actions={
+          <button
+            onClick={() => setIsLoanModalOpen(true)}
+            className="btn-primary text-sm"
+          >
+            + Novo Empréstimo
+          </button>
+        }
+      />
 
-        <div className="app-content bg-neutral-50">
-          {/* Cards de Resumo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="card bg-white">
-              <div className="flex items-center justify-between mb-4">
-                <p className="metric-card-label">Emprestei</p>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success-50 to-success-100 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+      <div className="app-content bg-neutral-50 dark:bg-neutral-900 flex-1 overflow-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="card bg-white dark:bg-neutral-800">
+            <div className="flex items-center justify-between mb-4">
+              <p className="metric-card-label">Emprestei</p>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success-50 to-success-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-              <p className="text-3xl font-bold text-success-600">R$ {totals.lent.toFixed(2)}</p>
-              <p className="text-sm text-neutral-500 mt-2">Pendente: R$ {lentPending.toFixed(2)}</p>
             </div>
-
-            <div className="card bg-white">
-              <div className="flex items-center justify-between mb-4">
-                <p className="metric-card-label">Peguei Emprestado</p>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning-50 to-warning-100 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-warning-600">R$ {totals.borrowed.toFixed(2)}</p>
-              <p className="text-sm text-neutral-500 mt-2">Pendente: R$ {borrowedPending.toFixed(2)}</p>
-            </div>
+            <p className="text-3xl font-bold text-success-600">R$ {totals.lent.toFixed(2)}</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Pendente: R$ {lentPending.toFixed(2)}</p>
           </div>
 
-          {/* Lista de Empréstimos */}
-          <LoansList
-            loans={loans}
-            onDelete={handleDeleteLoan}
-            onEdit={handleEditLoan}
-            onAddPayment={handleAddPayment}
-            loading={loading}
-          />
+          <div className="card bg-white dark:bg-neutral-800">
+            <div className="flex items-center justify-between mb-4">
+              <p className="metric-card-label">Peguei Emprestado</p>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warning-50 to-warning-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-3xl font-bold text-warning-600">R$ {totals.borrowed.toFixed(2)}</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Pendente: R$ {borrowedPending.toFixed(2)}</p>
+          </div>
         </div>
+
+        <LoansList
+          loans={loans}
+          onDelete={handleDeleteLoan}
+          onEdit={handleEditLoan}
+          onAddPayment={handleAddPayment}
+          loading={loading}
+        />
       </div>
 
-      {/* Modals */}
       <LoanModal
         isOpen={isLoanModalOpen}
         onClose={handleCloseLoanModal}
@@ -193,6 +168,6 @@ export default function LoansPage() {
         loan={payingLoan}
         loading={isSaving}
       />
-    </div>
+    </>
   );
 }

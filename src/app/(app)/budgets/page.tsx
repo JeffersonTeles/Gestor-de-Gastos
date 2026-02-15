@@ -2,15 +2,12 @@
 
 import { BudgetCard } from '@/components/dashboard/BudgetCard';
 import { BudgetModal } from '@/components/dashboard/BudgetModal';
-import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
-import { useAuth } from '@/hooks/useAuth';
 import { Budget, useBudgets } from '@/hooks/useBudgets';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 
 export default function BudgetsPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const { budgets, categories, addBudget, deleteBudget, updateBudget, refetch } = useBudgets(user?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,20 +17,6 @@ export default function BudgetsPage() {
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
-
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-    }
-  }, [user, router]);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Redirecionando...</p>
-      </div>
-    );
-  }
 
   const handleAddBudget = async (data: Partial<Budget>) => {
     setIsSaving(true);
@@ -76,51 +59,45 @@ export default function BudgetsPage() {
     await refetch(month);
   };
 
-  // Filtrar orçamentos do mês selecionado
   const filteredBudgets = budgets.filter(budget => {
     const budgetMonth = new Date(budget.month).toISOString().slice(0, 7);
     return budgetMonth === selectedMonth;
   });
 
   return (
-    <div className="app-layout">
-      <Sidebar />
-      
-      <div className="app-main-wrapper">
-        <Topbar 
-          title="Orçamentos"
-          subtitle="Metas mensais e controle de gastos"
-          actions={
-            <>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-neutral-200 shadow-sm">
-                <label className="text-xs font-semibold text-neutral-600">Mês:</label>
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={e => handleMonthChange(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-neutral-900 focus:outline-none cursor-pointer"
-                />
-              </div>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="btn-primary text-sm"
-              >
-                + Novo Orçamento
-              </button>
-            </>
-          }
-        />
+    <>
+      <Topbar 
+        title="Orçamentos"
+        subtitle="Metas mensais e controle de gastos"
+        actions={
+          <>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white dark:bg-neutral-700 rounded-lg border border-neutral-200 dark:border-neutral-600 shadow-sm">
+              <label className="text-xs font-semibold text-neutral-600 dark:text-neutral-300">Mês:</label>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={e => handleMonthChange(e.target.value)}
+                className="bg-transparent text-sm font-medium text-neutral-900 dark:text-white focus:outline-none cursor-pointer"
+              />
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn-primary text-sm"
+            >
+              + Novo Orçamento
+            </button>
+          </>
+        }
+      />
 
-        <div className="app-content bg-neutral-50">
-          <BudgetCard
-            budgets={filteredBudgets}
-            onEdit={handleEditBudget}
-            onDelete={handleDeleteBudget}
-          />
-        </div>
+      <div className="app-content bg-neutral-50 dark:bg-neutral-900 flex-1 overflow-auto">
+        <BudgetCard
+          budgets={filteredBudgets}
+          onEdit={handleEditBudget}
+          onDelete={handleDeleteBudget}
+        />
       </div>
 
-      {/* Modal */}
       <BudgetModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -130,6 +107,6 @@ export default function BudgetsPage() {
         budget={editingBudget}
         categories={categories}
       />
-    </div>
+    </>
   );
 }

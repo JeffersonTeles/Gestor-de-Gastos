@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import type { Transaction } from '@/types/index';
+import { useMemo } from 'react';
 
 export interface Prediction {
   month: string;
