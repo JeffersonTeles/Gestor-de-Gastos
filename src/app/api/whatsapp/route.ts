@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             type: 'expense',
             amount: command.amount,
             description: command.description,
-            category_id: null, // Pode ser melhorado com IA para categorizar
+            category_id: null,
             date: new Date().toISOString(),
             source: 'whatsapp'
           })
