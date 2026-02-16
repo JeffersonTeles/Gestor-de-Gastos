@@ -21,7 +21,7 @@ export const QuickAddFAB = ({ onAddIncome, onAddExpense }: QuickAddFABProps) => 
       )}
 
       {/* FAB Principal */}
-      <div className="lg:hidden fixed bottom-20 right-4 z-[100]">
+      <div className="lg:hidden fixed bottom-24 right-4 z-[100]">
         {/* Ações Expandidas */}
         {isExpanded && (
           <div className="absolute bottom-16 right-0 flex flex-col gap-3 animate-scale-in">

@@ -535,11 +535,22 @@ textarea:focus-visible {
 @media (max-width: 640px) {
   .app-content {
     padding: 1rem;
-    padding-bottom: 100px; /* Espaço para bottom bar */
+    padding-bottom: 100px; /* Espaço para bottom bar (64px) + FAB (56px) */
+    max-width: 100vw; /* Força limite de largura */
+    overflow-x: hidden; /* Previne scroll horizontal */
   }
   
+  /* Removido padding do app-main para evitar duplicação */
   .app-main {
-    padding-bottom: 80px; /* Espaço adicional para FAB */
+    /* padding-bottom agora está apenas no app-content */
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Garantir que todos os containers diretos respeitam viewport */
+  .app-layout, .app-main-wrapper, .page-with-sidebar, .page-content {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .app-topbar {
