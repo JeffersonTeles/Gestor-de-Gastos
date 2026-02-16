@@ -520,9 +520,56 @@ textarea:focus-visible {
 @media (max-width: 640px) {
   .app-content {
     padding: 1rem;
+    padding-bottom: 100px; /* Espaço para bottom bar */
   }
   
   .app-topbar {
     height: 60px;
   }
+  
+  /* Safe area para iPhones com notch */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* PWA - Remove barra de endereço quando instalado */
+@media (display-mode: standalone) {
+  body {
+    /* App está instalado como PWA */
+    -webkit-user-select: none;
+  }
+  
+  .install-prompt {
+    display: none;
+  }
+}
+
+/* Animações Adicionais */
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-progress {
+  animation: progress 1.5s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
 }
