@@ -8,31 +8,30 @@ import { z } from 'zod';
 // Schema para Transaction
 export const TransactionSchema = z.object({
   type: z.enum(['income', 'expense'], {
-    errorMap: () => ({ message: 'Tipo deve ser "income" ou "expense"' }),
+    message: 'Tipo deve ser "income" ou "expense"',
   }),
   amount: z
     .number({
-      required_error: 'Valor é obrigatório',
-      invalid_type_error: 'Valor deve ser um número',
+      message: 'Valor deve ser um número válido',
     })
     .positive('Valor deve ser maior que zero')
     .max(999999999, 'Valor muito alto (máximo R$ 999.999.999)'),
   category: z
     .string({
-      required_error: 'Categoria é obrigatória',
+      message: 'Categoria é obrigatória',
     })
     .min(1, 'Categoria não pode estar vazia')
     .max(50, 'Categoria muito longa'),
   description: z
     .string({
-      required_error: 'Descrição é obrigatória',
+      message: 'Descrição é obrigatória',
     })
     .min(3, 'Descrição muito curta (mínimo 3 caracteres)')
     .max(255, 'Descrição muito longa (máximo 255 caracteres)')
     .transform((val) => val.trim()), // Remove espaços extras
   date: z
     .string({
-      required_error: 'Data é obrigatória',
+      message: 'Data é obrigatória',
     })
     .datetime({ message: 'Data inválida' })
     .refine(
@@ -94,7 +93,7 @@ export const validateData = <T>(
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map((err) => err.message);
+      const errors = error.issues.map((err) => err.message);
       return { success: false, errors };
     }
     return { success: false, errors: ['Erro de validação desconhecido'] };
