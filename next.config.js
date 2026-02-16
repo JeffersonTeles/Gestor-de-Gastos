@@ -23,30 +23,11 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 
-  // Otimizações webpack
-  webpack: (config, { isServer }) => {
-    config.optimization = {
-      ...config.optimization,
-      moduleIds: 'deterministic',
-      runtimeChunk: 'single',
-      splitChunks: {
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-          recharts: {
-            test: /[\\/]node_modules[\\/](recharts)[\\/]/,
-            name: 'recharts',
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-        },
-      },
-    };
-    return config;
+  // Turbopack otimizações (substituem webpack)
+  turbopack: {
+    resolveAlias: {
+      '@': './src',
+    },
   },
 
   // Compressão Brotli
