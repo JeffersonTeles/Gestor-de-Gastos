@@ -1,0 +1,36 @@
+# Excluir da build no Vercel
+.git
+.env.local
+.env.*.local
+.next
+node_modules
+*.log
+.DS_Store
+
+# Arquivos de documentação e desenvolvimento
+docs/
+CHANGELOG.md
+PRONTO.md
+AUDITORIA_LIMPEZA.md
+ANALISE_TECNICA.md
+README.md
+SUPABASE_SETUP.md
+
+# Arquivos de teste
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage/
+.jest/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build locais
+dist/
+build/
+.turbo/

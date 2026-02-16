@@ -1,12 +1,16 @@
 'use client';
 
-import { CategoryBreakdown } from '@/components/dashboard/CategoryBreakdown';
-import { MonthComparisonChart } from '@/components/dashboard/MonthComparisonChart';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+// Gráficos carregados sob demanda
+const CategoryBreakdown = dynamic(() => import('@/components/dashboard/CategoryBreakdown').then(mod => ({ default: mod.CategoryBreakdown })));
+const MonthComparisonChart = dynamic(() => import('@/components/dashboard/MonthComparisonChart').then(mod => ({ default: mod.MonthComparisonChart })));
+
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function AnalyticsPage() {
   const router = useRouter();
