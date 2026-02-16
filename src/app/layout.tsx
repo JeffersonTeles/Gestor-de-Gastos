@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
 
+// Build: force redeploy with env vars
 export const metadata: Metadata = {
   title: 'Gestor de Gastos',
   description: 'Aplicação profissional para gerenciar suas finanças',
