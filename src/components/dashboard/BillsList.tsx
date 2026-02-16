@@ -25,7 +25,7 @@ export const BillsList = ({
 
   if (loading) {
     return (
-      <div className="max-w-md mx-auto px-4 py-8 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-8 text-center">
         <p className="text-gray-500">Carregando...</p>
       </div>
     );
@@ -39,7 +39,7 @@ export const BillsList = ({
 
   if (filtered.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-4 py-12 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">🧾</p>
         <p className="text-gray-500 mt-2">Nenhuma conta cadastrada.</p>
         <p className="text-xs text-gray-400 mt-1">Use o botao + para criar a primeira.</p>
@@ -73,7 +73,7 @@ export const BillsList = ({
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-6">
       <div className="mb-4 space-y-2">
         <div className="flex gap-2">
           <button

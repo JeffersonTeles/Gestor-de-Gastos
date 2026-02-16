@@ -32,7 +32,7 @@ export const CategoryChart = ({ transactions, type = 'all' }: CategoryChartProps
 
   if (chartData.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-4 py-8 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-8 text-center">
         <p className="text-gray-500">Sem dados para o gráfico. Adicione transações para começar.</p>
       </div>
     );
@@ -55,7 +55,7 @@ export const CategoryChart = ({ transactions, type = 'all' }: CategoryChartProps
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 bg-white rounded-xl border border-gray-200">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-6 bg-white rounded-xl border border-gray-200">
       <h3 className="text-lg font-bold text-gray-900 mb-4">
         {type === 'income' ? 'Receitas' : type === 'expense' ? 'Despesas' : 'Transações'} por Categoria
       </h3>

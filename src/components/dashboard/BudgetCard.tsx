@@ -11,7 +11,7 @@ interface BudgetCardProps {
 export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
   if (budgets.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-4 py-12 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">🎯</p>
         <p className="text-gray-500 mt-2">Nenhum orçamento definido.</p>
         <p className="text-xs text-gray-400 mt-1">Defina limites por categoria para acompanhar seus gastos.</p>
@@ -34,7 +34,7 @@ export const BudgetCard = ({ budgets, onEdit, onDelete }: BudgetCardProps) => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-6">
       <h3 className="text-lg font-bold text-gray-900 mb-4">
         Orçamentos
         <span className="ml-2 text-xs font-semibold text-gray-500">

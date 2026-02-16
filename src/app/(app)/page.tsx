@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
       {/* Tabs */}
       <div className="bg-white/90 backdrop-blur border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-2 flex gap-2">
+        <div className="max-w-full sm:max-w-md mx-auto px-4 py-2 flex gap-2">
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-3 text-sm font-semibold rounded-full transition ${

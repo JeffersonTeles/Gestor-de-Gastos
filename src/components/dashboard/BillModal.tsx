@@ -140,7 +140,7 @@ export const BillModal = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -243,7 +243,7 @@ export const BillModal = ({
 
                 {repeatEnabled && (
                   <div className="space-y-3 rounded-xl border border-gray-200 p-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-gray-600 mb-2">
                           Frequencia
@@ -330,7 +330,7 @@ export const BillModal = ({
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}

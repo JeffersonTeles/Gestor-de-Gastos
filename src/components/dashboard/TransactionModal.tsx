@@ -193,7 +193,7 @@ export const TransactionModal = ({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Tipo */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -266,7 +266,7 @@ export const TransactionModal = ({
             </div>
 
             {/* Data e tipo de despesa */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
                   Data
@@ -385,7 +385,7 @@ export const TransactionModal = ({
             )}
 
             {/* Botões */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}

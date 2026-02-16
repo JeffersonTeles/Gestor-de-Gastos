@@ -21,7 +21,7 @@ export const BalanceCard = ({ transactions }: BalanceCardProps) => {
     .reduce((acc, tx) => acc + tx.amount, 0);
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-6 space-y-4">
       {/* Saldo Principal */}
       <div className="bg-gradient-to-br from-teal-600 via-teal-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Saldo Total</p>
@@ -30,7 +30,7 @@ export const BalanceCard = ({ transactions }: BalanceCardProps) => {
       </div>
 
       {/* Receitas vs Despesas */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl p-4 border border-green-200 shadow-sm">
           <p className="text-xs text-green-600 font-semibold uppercase tracking-wide">Receitas</p>
           <p className="text-xl font-bold text-green-700 mt-1">

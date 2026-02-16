@@ -122,7 +122,7 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-4 sticky top-16 bg-white/90 backdrop-blur border-b border-gray-200 z-40 shadow-sm rounded-b-2xl">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-4 sticky top-16 bg-white/90 backdrop-blur border-b border-gray-200 z-40 shadow-sm rounded-b-2xl">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">Filtros</h3>
         <span className="text-xs text-gray-500">

@@ -123,7 +123,7 @@ export const LoanModal = ({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Tipo */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setType('lent')}
@@ -240,7 +240,7 @@ export const LoanModal = ({
             )}
 
             {/* Botões */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}

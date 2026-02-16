@@ -13,7 +13,7 @@ interface TransactionsListProps {
 export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: TransactionsListProps) => {
   if (loading) {
     return (
-      <div className="max-w-md mx-auto px-4 py-8 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-8 text-center">
         <p className="text-gray-500">Carregando...</p>
       </div>
     );
@@ -21,7 +21,7 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
 
   if (transactions.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-4 py-12 text-center">
+      <div className="max-w-full sm:max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-2xl">📭</p>
         <p className="text-gray-500 mt-2">Nenhuma transação registrada.</p>
         <p className="text-xs text-gray-400 mt-1">Use o botão + para adicionar a primeira.</p>
@@ -30,7 +30,7 @@ export const TransactionsList = ({ transactions, onDelete, onEdit, loading }: Tr
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-full sm:max-w-md mx-auto px-4 py-6">
       <h3 className="text-lg font-bold text-gray-900 mb-4">
         Transações
         <span className="ml-2 text-xs font-semibold text-gray-500">

@@ -171,7 +171,7 @@ export const ImportModal = ({ isOpen, onClose, onImport }: ImportModalProps) => 
           <label className="block text-sm font-semibold text-slate-600 mb-3">
             Formato do arquivo
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => setFormat('csv')}
               className={`p-4 rounded-2xl border-2 transition-all ${
