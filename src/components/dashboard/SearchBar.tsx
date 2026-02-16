@@ -230,6 +230,8 @@ export const SearchBar = ({
               <div className="flex gap-3 items-center">
                 <input
                   type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   value={filters.amountMin}
                   onChange={(e) => setFilters({ ...filters, amountMin: e.target.value })}
                   placeholder="Mínimo"
@@ -238,6 +240,8 @@ export const SearchBar = ({
                 <span className="text-gray-400">—</span>
                 <input
                   type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
                   value={filters.amountMax}
                   onChange={(e) => setFilters({ ...filters, amountMax: e.target.value })}
                   placeholder="Máximo"

@@ -173,6 +173,8 @@ export default function GoalsPage() {
 
               <input
                 type="number"
+                inputMode="decimal"
+                pattern="[0-9]*"
                 placeholder="Valor alvo (R$)"
                 value={targetAmount}
                 onChange={(e) => setTargetAmount(e.target.value)}

@@ -127,6 +127,8 @@ export const AdvancedFilters = ({ onFilter }: AdvancedFiltersProps) => {
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
                     placeholder="Mínimo"
                     className="px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm"
                     value={filters.amountRange?.min || ''}
@@ -137,6 +139,8 @@ export const AdvancedFilters = ({ onFilter }: AdvancedFiltersProps) => {
                   />
                   <input
                     type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
                     placeholder="Máximo"
                     className="px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm"
                     value={filters.amountRange?.max || ''}

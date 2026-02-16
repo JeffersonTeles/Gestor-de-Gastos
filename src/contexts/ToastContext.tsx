@@ -60,7 +60,7 @@ interface ToastContainerProps {
 
 const ToastContainer = ({ toasts, onClose }: ToastContainerProps) => {
   return (
-    <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+    <div className="fixed top-6 sm:top-6 sm:right-6 left-1/2 sm:left-auto -translate-x-1/2 sm:translate-x-0 z-[100] flex flex-col gap-3 pointer-events-none w-[calc(100%-2rem)] sm:w-auto max-w-md">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onClose={onClose} />
       ))}
@@ -113,24 +113,24 @@ const ToastItem = ({ toast, onClose }: ToastItemProps) => {
     <div
       className={`
         glass-panel pointer-events-auto
-        min-w-[300px] max-w-md
-        rounded-2xl shadow-[0_12px_28px_rgba(0,0,0,0.2)]
+        w-full sm:min-w-[320px] sm:max-w-md
+        rounded-2xl sm:rounded-2xl rounded-xl shadow-[0_12px_28px_rgba(0,0,0,0.2)]
         overflow-hidden
-        transition-all duration-300
-        ${isExiting ? 'opacity-0 translate-x-8' : 'opacity-100 translate-x-0'}
+        transition-all duration-300 ease-out
+        ${isExiting ? 'opacity-0 scale-95 -translate-y-2' : 'opacity-100 scale-100 translate-y-0'}
       `}
     >
       {/* Barra de cor */}
       <div className={`h-1.5 ${getColors()}`} />
       
       {/* Conteúdo */}
-      <div className="p-4 flex items-start gap-3">
+      <div className="p-4 sm:p-4 flex items-start gap-3">
         {/* Ícone */}
         <div
           className={`
-            flex-shrink-0 w-8 h-8 rounded-full
+            flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full
             flex items-center justify-center
-            text-lg font-bold
+            text-lg sm:text-lg font-bold
             ${getColors()}
           `}
         >
@@ -138,14 +138,15 @@ const ToastItem = ({ toast, onClose }: ToastItemProps) => {
         </div>
 
         {/* Mensagem */}
-        <p className="flex-1 text-sm font-medium text-[var(--ink)] pt-1">
+        <p className="flex-1 text-sm sm:text-sm font-medium text-[var(--ink)] pt-1 leading-relaxed">
           {toast.message}
         </p>
 
         {/* Botão fechar */}
         <button
           onClick={handleClose}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors text-xl leading-none"
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 active:text-gray-800 transition-colors text-2xl sm:text-xl leading-none -mt-1 px-1"
+          aria-label="Fechar"
         >
           ×
         </button>

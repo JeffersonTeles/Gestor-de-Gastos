@@ -177,6 +177,8 @@ export const BillModal = ({
               </label>
               <input
                 type="number"
+                inputMode="decimal"
+                pattern="[0-9]*"
                 step="0.01"
                 min="0"
                 placeholder="0,00"
@@ -264,6 +266,8 @@ export const BillModal = ({
                         </label>
                         <input
                           type="number"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           min={1}
                           value={interval}
                           onChange={e => setInterval(Math.max(1, Number(e.target.value)))}
