@@ -40,20 +40,13 @@ export const useTransactions = (userId: string | undefined) => {
   const { data: transactions = [], isLoading: loading, error } = useQuery({
     queryKey: [TRANSACTIONS_QUERY_KEY, userId],
     queryFn: async () => {
-      if (!userId) return readLocalTransactions();
-
-      if (!isSupabaseConfigured) {
-        return readLocalTransactions();
-      }
-
-      const response = await fetch('/api/transactions');
-      if (!response.ok) throw new Error('Erro ao buscar transações');
-      return response.json();
+      // SEMPRE usa localStorage, sem API
+      return readLocalTransactions();
     },
-    enabled: true, // Sempre habilitado (usa localStorage se sem userId)
+    enabled: true, // Sempre habilitado (usa localStorage)
     staleTime: 5 * 60 * 1000, // 5 min
     gcTime: 30 * 60 * 1000,   // 30 min (antigo: cacheTime)
-    retry: isSupabaseConfigured && userId ? 2 : 0, // Sem retry se sem API/user
+    retry: 0, // Sem retry (localStorage não falha)
   });
 
   // Add mutation

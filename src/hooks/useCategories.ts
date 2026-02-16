@@ -44,18 +44,13 @@ export const useCategories = () => {
   const { data: categories = [], isLoading: loading, error } = useQuery({
     queryKey: [CATEGORIES_QUERY_KEY],
     queryFn: async () => {
-      if (!isSupabaseConfigured) {
-        return DEFAULT_CATEGORIES;
-      }
-
-      const response = await fetch('/api/categories');
-      if (!response.ok) throw new Error('Erro ao buscar categorias');
-      return response.json();
+      // Sempre usa categorias padrão ao invés de fazer fetch
+      return DEFAULT_CATEGORIES;
     },
     staleTime: 60 * 60 * 1000, // 1 hora (categorias mudam pouco)
     gcTime: 24 * 60 * 60 * 1000, // 24 horas
-    retry: isSupabaseConfigured ? 1 : 0, // Sem retry se não tiver Supabase
-    enabled: true, // Sempre habilitado (usa defaults se não tiver API)
+    retry: 0, // Sem retry (não faz fetch)
+    enabled: true, // Sempre habilitado (usa defaults)
   });
 
   // Add mutation

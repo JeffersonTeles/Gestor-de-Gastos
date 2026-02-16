@@ -27,6 +27,15 @@ const DEFAULT_CATEGORIES = [
 
 export async function GET() {
   try {
+    // Se Supabase não está configurado, retornar categorias padrão
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json([
+        { id: 'exp-food', userId: 'demo', name: 'Alimentação', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+        { id: 'exp-transport', userId: 'demo', name: 'Transporte', type: 'expense', icon: '🚗', color: '#f97316', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+        { id: 'inc-salary', userId: 'demo', name: 'Salário', type: 'income', icon: '💰', color: '#22c55e', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
+      ]);
+    }
+
     const supabase = createClient();
 
     const {

@@ -6,6 +6,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Se Supabase não está configurado, retornar vazio
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json([], { status: 200 });
+    }
+
     const supabase = createClient();
 
     const {

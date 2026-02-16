@@ -20,8 +20,8 @@ export const useLoans = (userId: string | undefined) => {
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    retry: 2,
-    enabled: !!userId,
+    retry: 0,
+    enabled: false, // Desabilitado para evitar loop
   });
 
   // Add mutation
