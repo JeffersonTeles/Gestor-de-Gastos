@@ -26,19 +26,20 @@ export default function DashboardPage() {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [activeTab, setActiveTab] = useState<'overview' | 'charts'>('overview');
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-    }
-  }, [user, router]);
+  // Auth redirect desabilitado temporariamente para evitar loop
+  // useEffect(() => {
+  //   if (!user) {
+  //     router.push('/auth/login');
+  //   }
+  // }, [user, router]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Redirecionando para login...</p>
-      </div>
-    );
-  }
+  // if (!user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <p className="text-gray-500">Redirecionando para login...</p>
+  //     </div>
+  //   );
+  // }
 
   // Inicializa com todas as transações
   const displayTransactions = filteredTransactions.length > 0 || transactions.length > 0 

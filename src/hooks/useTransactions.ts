@@ -50,9 +50,10 @@ export const useTransactions = (userId: string | undefined) => {
       if (!response.ok) throw new Error('Erro ao buscar transações');
       return response.json();
     },
+    enabled: true, // Sempre habilitado (usa localStorage se sem userId)
     staleTime: 5 * 60 * 1000, // 5 min
     gcTime: 30 * 60 * 1000,   // 30 min (antigo: cacheTime)
-    retry: 2,
+    retry: isSupabaseConfigured && userId ? 2 : 0, // Sem retry se sem API/user
   });
 
   // Add mutation

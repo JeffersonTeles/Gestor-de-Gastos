@@ -54,7 +54,8 @@ export const useCategories = () => {
     },
     staleTime: 60 * 60 * 1000, // 1 hora (categorias mudam pouco)
     gcTime: 24 * 60 * 60 * 1000, // 24 horas
-    retry: 1,
+    retry: isSupabaseConfigured ? 1 : 0, // Sem retry se não tiver Supabase
+    enabled: true, // Sempre habilitado (usa defaults se não tiver API)
   });
 
   // Add mutation
