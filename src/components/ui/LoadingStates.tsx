@@ -16,13 +16,18 @@ export const LoadingOverlay = ({
   const [showDelayed, setShowDelayed] = useState(false);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    
     if (isLoading) {
       // Só mostra depois de 200ms para evitar flash em operações rápidas
-      const timer = setTimeout(() => setShowDelayed(true), 200);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => setShowDelayed(true), 200);
     } else {
       setShowDelayed(false);
     }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isLoading]);
 
   if (!showDelayed) return null;
@@ -104,10 +109,15 @@ interface ToastProps {
 
 export const Toast = ({ show, message, type, onClose }: ToastProps) => {
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    
     if (show) {
-      const timer = setTimeout(onClose, 3000);
-      return () => clearTimeout(timer);
+      timer = setTimeout(onClose, 3000);
     }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [show, onClose]);
 
   if (!show) return null;
