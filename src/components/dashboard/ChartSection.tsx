@@ -39,7 +39,7 @@ export const ChartSection = ({ transactions }: ChartSectionProps) => {
     <div className="max-w-full sm:max-w-md mx-auto px-4 py-6 bg-white rounded-xl border border-gray-200">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Histórico Mensal</h3>
       
-      <div className="w-full h-80 -mx-4">
+      <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
