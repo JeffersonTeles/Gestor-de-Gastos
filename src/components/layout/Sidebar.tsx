@@ -3,12 +3,15 @@
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 
-export const Sidebar = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const navItems = [
     {
@@ -88,15 +91,15 @@ export const Sidebar = () => {
   return (
     <>
       {/* Mobile Overlay */}
-      {isMobileOpen && (
+      {isOpen && (
         <div 
           className="fixed inset-0 bg-neutral-900/50 z-40 lg:hidden"
-          onClick={() => setIsMobileOpen(false)}
+          onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`app-sidebar bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 ${isMobileOpen ? 'mobile-open' : ''}`}>
+      <aside className={`app-sidebar bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 ${isOpen ? 'mobile-open' : ''}`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="h-[var(--topbar-height)] flex items-center px-6 border-b border-neutral-200 dark:border-neutral-700">
@@ -124,7 +127,7 @@ export const Sidebar = () => {
                       ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium shadow-sm'
                       : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
                   }`}
-                  onClick={() => setIsMobileOpen(false)}
+                  onClick={onClose}
                 >
                   {item.icon}
                   <span className="text-sm">{item.label}</span>
@@ -149,16 +152,6 @@ export const Sidebar = () => {
           </div>
         </div>
       </aside>
-
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg z-50 flex items-center justify-center"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
     </>
   );
 };

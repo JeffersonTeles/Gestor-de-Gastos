@@ -16,9 +16,10 @@ interface TopbarProps {
   subtitle?: string;
   actions?: React.ReactNode;
   showBreadcrumbs?: boolean;
+  onMenuToggle?: () => void;
 }
 
-export const Topbar = ({ title, subtitle, actions, showBreadcrumbs = true }: TopbarProps) => {
+export const Topbar = ({ title, subtitle, actions, showBreadcrumbs = true, onMenuToggle }: TopbarProps) => {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -37,15 +38,27 @@ export const Topbar = ({ title, subtitle, actions, showBreadcrumbs = true }: Top
 
   return (
     <div className="app-topbar bg-white/95 dark:bg-neutral-800/95 border-b border-neutral-200 dark:border-neutral-700 backdrop-blur-sm">
-      <div className="h-full px-6 flex items-center justify-between gap-4">
+      <div className="h-full px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Mobile Menu Button */}
+        {onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="lg:hidden p-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+            aria-label="Abrir menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
         {/* Title Section */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {showBreadcrumbs && !title && <Breadcrumbs />}
           {title && (
             <div>
-              <h2 className="text-xl font-bold text-neutral-900 dark:text-white">{title}</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white truncate">{title}</h2>
               {subtitle && (
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{subtitle}</p>
+                <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">{subtitle}</p>
               )}
             </div>
           )}

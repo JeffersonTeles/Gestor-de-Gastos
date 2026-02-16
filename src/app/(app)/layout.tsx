@@ -4,7 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AppLayout({
   children,
@@ -13,6 +13,7 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Se não está carregando e não há usuário, redirecionar para login
@@ -35,9 +36,12 @@ export default function AppLayout({
 
   return (
     <div className="page-with-sidebar">
-      <Sidebar />
+      <Sidebar 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+      />
       <div className="page-content flex flex-col">
-        <Topbar />
+        <Topbar onMenuToggle={() => setIsMobileMenuOpen(true)} />
         <main className="app-main flex-1 overflow-auto">
           {children}
         </main>

@@ -9,6 +9,7 @@ import { LineChart } from '@/components/charts/LineChart';
 import { PieChart } from '@/components/charts/PieChart';
 import { ImportModal } from '@/components/dashboard/ImportModal';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { QuickFilters } from '@/components/dashboard/QuickFilters';
 import { SearchBar } from '@/components/dashboard/SearchBar';
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts';
 import { TransactionModal } from '@/components/dashboard/TransactionModal';
@@ -54,6 +55,8 @@ export default function DashboardPage() {
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(false);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
 
   // Insights e Previsões
   const insights = useInsights(transactions, stats.income);
@@ -151,7 +154,35 @@ export default function DashboardPage() {
     let expense = 0;
     const tagsSet = new Set<string>();
     
-    transactions.forEach((tx: any) => {
+    // Aplicar filtros de período e tipo
+    let filtered = [...transactions];
+    
+    // Filtro de período
+    const now = new Date();
+    if (selectedPeriod === 'today') {
+      const today = now.toISOString().split('T')[0];
+      filtered = filtered.filter((tx: any) => tx.date.startsWith(today));
+    } else if (selectedPeriod === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter((tx: any) => new Date(tx.date) >= weekAgo);
+    } else if (selectedPeriod === 'month') {
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      filtered = filtered.filter((tx: any) => {
+        const txDate = new Date(tx.date);
+        return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+      });
+    } else if (selectedPeriod === 'year') {
+      const currentYear = now.getFullYear();
+      filtered = filtered.filter((tx: any) => new Date(tx.date).getFullYear() === currentYear);
+    }
+    
+    // Filtro de tipo
+    if (selectedType !== 'all') {
+      filtered = filtered.filter((tx: any) => tx.type === selectedType);
+    }
+    
+    filtered.forEach((tx: any) => {
       const amount = Number(tx.amount) || 0;
       if (tx.type === 'income') {
         income += amount;
@@ -172,8 +203,8 @@ export default function DashboardPage() {
     });
     
     setAllTags(Array.from(tagsSet));
-    setFilteredTransactions(transactions);
-  }, [transactions, user]);
+    setFilteredTransactions(filtered);
+  }, [transactions, user, selectedPeriod, selectedType]);
 
   if (authLoading || transactionsLoading) {
     return (
@@ -342,7 +373,7 @@ export default function DashboardPage() {
 
         <div className="app-content bg-neutral-50">
           {/* Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 animate-fade-in">
             <MetricCard
               title="Saldo Total"
               value={formatCurrency(Math.abs(stats.total))}
@@ -378,13 +409,21 @@ export default function DashboardPage() {
 
             <MetricCard
               title="Transações"
-              value={transactions.length.toString()}
+              value={filteredTransactions.length.toString()}
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               }
               color="warning"
+            />
+          </div>
+
+          {/* Filtros Rápidos */}
+          <div className="mb-6 sm:mb-8">
+            <QuickFilters 
+              onPeriodChange={setSelectedPeriod}
+              onTypeChange={setSelectedType}
             />
           </div>
 
