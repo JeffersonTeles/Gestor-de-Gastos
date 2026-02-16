@@ -2,6 +2,7 @@
 
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
+import { MobileBottomBar } from '@/components/mobile/MobileBottomBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -45,6 +46,8 @@ export default function AppLayout({
         <main className="app-main flex-1 overflow-auto">
           {children}
         </main>
+        {/* Barra de navegação mobile - só aparece em telas pequenas */}
+        <MobileBottomBar />
       </div>
     </div>
   );

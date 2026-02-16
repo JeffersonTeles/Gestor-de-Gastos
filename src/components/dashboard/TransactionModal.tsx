@@ -1,5 +1,6 @@
 'use client';
 
+import { MoneyInput } from '@/components/ui/MoneyInput';
 import { useCategories } from '@/hooks/useCategories';
 import { useEffect, useState } from 'react';
 
@@ -105,8 +106,16 @@ export const TransactionModal = ({
     e.preventDefault();
     setError('');
 
+    // Converter valor formatado (1.234,56) para número
+    const parseFormattedMoney = (value: string): number => {
+      const cleaned = value.replace(/\./g, '').replace(',', '.');
+      return parseFloat(cleaned) || 0;
+    };
+
+    const numericAmount = parseFormattedMoney(amount);
+
     // Validações
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!amount || numericAmount <= 0) {
       setError('Valor deve ser maior que 0');
       return;
     }
@@ -122,7 +131,7 @@ export const TransactionModal = ({
     try {
       const data: TransactionData = {
         type,
-        amount: parseFloat(amount),
+        amount: numericAmount,
         category,
         description: description.trim(),
         date,
@@ -216,20 +225,12 @@ export const TransactionModal = ({
             </div>
 
             {/* Valor */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">
-                Valor (R$)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-2xl text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
-              />
-            </div>
+            <MoneyInput
+              label="Valor (R$)"
+              value={amount}
+              onChange={setAmount}
+              autoFocus={mode === 'create'}
+            />
 
             {/* Categoria */}
             <div>

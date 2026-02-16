@@ -17,6 +17,7 @@ import { WeeklyReview } from '@/components/dashboard/WeeklyReview';
 import { WhatsAppIntegration } from '@/components/integrations/WhatsAppIntegration';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
+import { QuickAddFAB } from '@/components/mobile/QuickAddFAB';
 import {
     AdvancedFilters,
     EmptyTransactions,
@@ -701,6 +702,18 @@ export default function DashboardPage() {
         isOpen={isWeeklyReviewOpen}
         onClose={() => setIsWeeklyReviewOpen(false)}
         transactions={transactions}
+      />
+
+      {/* Botão flutuante para adicionar transações rapidamente no mobile */}
+      <QuickAddFAB
+        onAddIncome={() => {
+          setModalType('income');
+          setIsModalOpen(true);
+        }}
+        onAddExpense={() => {
+          setModalType('expense');
+          setIsModalOpen(true);
+        }}
       />
     </div>
   );
