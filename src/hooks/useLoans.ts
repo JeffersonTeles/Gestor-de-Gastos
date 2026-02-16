@@ -1,162 +1,132 @@
 'use client';
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loan } from '@/types/index';
-import { useCallback, useEffect, useState } from 'react';
+
+const LOANS_QUERY_KEY = 'loans';
 
 export const useLoans = (userId: string | undefined) => {
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // Buscar empréstimos
-  const fetchLoans = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
+  // Fetch com cache React Query
+  const { data: loans = [], isLoading: loading, error } = useQuery({
+    queryKey: [LOANS_QUERY_KEY, userId],
+    queryFn: async () => {
+      if (!userId) return [];
 
       const response = await fetch('/api/loans');
       if (!response.ok) throw new Error('Erro ao buscar empréstimos');
-
-      const data = await response.json();
-      setLoans(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar empréstimos');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  // Buscar ao montar
-  useEffect(() => {
-    fetchLoans();
-  }, [fetchLoans]);
-
-  // Adicionar empréstimo
-  const addLoan = useCallback(
-    async (loan: Partial<Loan>) => {
-      try {
-        setError(null);
-
-        const response = await fetch('/api/loans', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loan),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao criar empréstimo');
-        }
-
-        const data = await response.json();
-        setLoans(prev => [data, ...prev]);
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao adicionar empréstimo');
-        throw err;
-      }
+      return response.json();
     },
-    []
-  );
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    enabled: !!userId,
+  });
 
-  // Deletar empréstimo
-  const deleteLoan = useCallback(
-    async (id: string) => {
-      try {
-        setError(null);
+  // Add mutation
+  const addMutation = useMutation({
+    mutationFn: async (loan: Partial<Loan>) => {
+      const response = await fetch('/api/loans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loan),
+      });
 
-        const response = await fetch(`/api/loans/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao deletar empréstimo');
-        }
-
-        setLoans(prev => prev.filter(l => l.id !== id));
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar empréstimo');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao criar empréstimo');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: (newLoan) => {
+      queryClient.setQueryData([LOANS_QUERY_KEY, userId], (old: Loan[]) => 
+        [newLoan, ...(old || [])]
+      );
+    },
+  });
 
-  // Atualizar empréstimo
-  const updateLoan = useCallback(
-    async (id: string, updates: Partial<Loan>) => {
-      try {
-        setError(null);
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/loans/${id}`, {
+        method: 'DELETE',
+      });
 
-        const response = await fetch(`/api/loans/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao atualizar empréstimo');
-        }
-
-        const data = await response.json();
-        setLoans(prev =>
-          prev.map(l => (l.id === id ? data : l))
-        );
-
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao atualizar empréstimo');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao deletar empréstimo');
       }
+
+      return id;
     },
-    []
-  );
+    onSuccess: (id) => {
+      queryClient.setQueryData([LOANS_QUERY_KEY, userId], (old: Loan[]) => 
+        (old || []).filter(l => l.id !== id)
+      );
+    },
+  });
 
-  // Registrar pagamento
-  const addPayment = useCallback(
-    async (loanId: string, payment: { amount: number; paymentDate: string; notes?: string }) => {
-      try {
-        setError(null);
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Loan> }) => {
+      const response = await fetch(`/api/loans/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
 
-        const response = await fetch(`/api/loans/${loanId}/payments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payment),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao registrar pagamento');
-        }
-
-        const data = await response.json();
-        
-        // Atualizar o empréstimo na lista
-        setLoans(prev =>
-          prev.map(l => (l.id === loanId ? data.loan : l))
-        );
-
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao registrar pagamento');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar empréstimo');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: (updatedLoan) => {
+      queryClient.setQueryData([LOANS_QUERY_KEY, userId], (old: Loan[]) => 
+        (old || []).map(l => l.id === updatedLoan.id ? updatedLoan : l)
+      );
+    },
+  });
+
+  // Payment mutation
+  const paymentMutation = useMutation({
+    mutationFn: async ({ loanId, payment }: { 
+      loanId: string; 
+      payment: { amount: number; paymentDate: string; notes?: string } 
+    }) => {
+      const response = await fetch(`/api/loans/${loanId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payment),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao registrar pagamento');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData([LOANS_QUERY_KEY, userId], (old: Loan[]) => 
+        (old || []).map(l => l.id === data.loan.id ? data.loan : l)
+      );
+    },
+  });
 
   return {
     loans,
     loading,
-    error,
-    addLoan,
-    deleteLoan,
-    updateLoan,
-    addPayment,
-    refetch: fetchLoans,
+    error: error?.message || null,
+    addLoan: addMutation.mutateAsync,
+    deleteLoan: deleteMutation.mutateAsync,
+    updateLoan: (id: string, updates: Partial<Loan>) => 
+      updateMutation.mutateAsync({ id, updates }),
+    addPayment: (loanId: string, payment: { amount: number; paymentDate: string; notes?: string }) =>
+      paymentMutation.mutateAsync({ loanId, payment }),
+    refetch: () => queryClient.invalidateQueries({ queryKey: [LOANS_QUERY_KEY, userId] }),
   };
 };

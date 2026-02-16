@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+const CATEGORIES_QUERY_KEY = 'categories';
 
 export interface Category {
   id: string;
@@ -15,9 +17,7 @@ export interface Category {
 }
 
 export const useCategories = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const isSupabaseConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
@@ -40,131 +40,104 @@ export const useCategories = () => {
     { id: 'inc-other', userId: 'demo', name: 'Outro', type: 'income', icon: '✨', color: '#64748b', isDefault: true, createdAt: new Date(), updatedAt: new Date() },
   ];
 
-  // Buscar categorias
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  // Fetch com cache React Query (categorias mudam raramente, cache maior)
+  const { data: categories = [], isLoading: loading, error } = useQuery({
+    queryKey: [CATEGORIES_QUERY_KEY],
+    queryFn: async () => {
       if (!isSupabaseConfigured) {
-        setCategories(DEFAULT_CATEGORIES);
-        return;
+        return DEFAULT_CATEGORIES;
       }
 
       const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Erro ao buscar categorias');
-
-      const data = await response.json();
-      setCategories(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar categorias');
-      setCategories(DEFAULT_CATEGORIES);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Buscar ao montar
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  // Adicionar categoria
-  const addCategory = useCallback(
-    async (category: Omit<Category, 'id' | 'userId' | 'isDefault' | 'createdAt' | 'updatedAt'>) => {
-      try {
-        setError(null);
-
-        const response = await fetch('/api/categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(category),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao criar categoria');
-        }
-
-        const data = await response.json();
-        setCategories(prev => [...prev, data]);
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao adicionar categoria');
-        throw err;
-      }
+      return response.json();
     },
-    []
-  );
+    staleTime: 60 * 60 * 1000, // 1 hora (categorias mudam pouco)
+    gcTime: 24 * 60 * 60 * 1000, // 24 horas
+    retry: 1,
+  });
 
-  // Deletar categoria
-  const deleteCategory = useCallback(
-    async (id: string) => {
-      try {
-        setError(null);
+  // Add mutation
+  const addMutation = useMutation({
+    mutationFn: async (category: Omit<Category, 'id' | 'userId' | 'isDefault' | 'createdAt' | 'updatedAt'>) => {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(category),
+      });
 
-        const response = await fetch(`/api/categories/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao deletar categoria');
-        }
-
-        setCategories(prev => prev.filter(c => c.id !== id));
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar categoria');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao criar categoria');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: (newCategory) => {
+      queryClient.setQueryData([CATEGORIES_QUERY_KEY], (old: Category[]) => 
+        [...(old || []), newCategory]
+      );
+    },
+  });
 
-  // Atualizar categoria
-  const updateCategory = useCallback(
-    async (id: string, updates: Partial<Category>) => {
-      try {
-        setError(null);
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
 
-        const response = await fetch(`/api/categories/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao atualizar categoria');
-        }
-
-        const data = await response.json();
-        setCategories(prev =>
-          prev.map(c => (c.id === id ? data : c))
-        );
-
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao atualizar categoria');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao deletar categoria');
       }
+
+      return id;
     },
-    []
-  );
+    onSuccess: (id) => {
+      queryClient.setQueryData([CATEGORIES_QUERY_KEY], (old: Category[]) => 
+        (old || []).filter(c => c.id !== id)
+      );
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Category> }) => {
+      const response = await fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar categoria');
+      }
+
+      return response.json();
+    },
+    onSuccess: (updatedCategory) => {
+      queryClient.setQueryData([CATEGORIES_QUERY_KEY], (old: Category[]) => 
+        (old || []).map(c => c.id === updatedCategory.id ? updatedCategory : c)
+      );
+    },
+  });
 
   // Helpers
   const getCategoriesByType = (type: 'income' | 'expense') => {
-    return categories.filter(c => c.type === type || c.type === 'both');
+    return categories.filter((c: Category) => c.type === type || c.type === 'both');
   };
 
   return {
     categories,
     loading,
-    error,
-    addCategory,
-    deleteCategory,
-    updateCategory,
+    error: error?.message || null,
+    addCategory: addMutation.mutateAsync,
+    deleteCategory: deleteMutation.mutateAsync,
+    updateCategory: (id: string, updates: Partial<Category>) => 
+      updateMutation.mutateAsync({ id, updates }),
     getCategoriesByType,
-    refetch: fetchCategories,
+    refetch: () => queryClient.invalidateQueries({ queryKey: [CATEGORIES_QUERY_KEY] }),
   };
 };

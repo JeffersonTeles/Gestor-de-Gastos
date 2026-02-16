@@ -1,6 +1,6 @@
 'use client';
 
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, type Category } from '@/hooks/useCategories';
 import { Transaction } from '@/types/index';
 import { useState } from 'react';
 
@@ -193,7 +193,7 @@ export const FilterBar = ({ transactions, onFilter, onExport }: FilterBarProps) 
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="Todas">Todas</option>
-            {categories.map(c => (
+            {categories.map((c: Category) => (
               <option key={c.id} value={c.name}>
                 {c.icon} {c.name}
               </option>

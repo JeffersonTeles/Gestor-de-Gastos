@@ -1,12 +1,13 @@
 'use client';
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction } from '@/types/index';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+
+const TRANSACTIONS_QUERY_KEY = 'transactions';
 
 export const useTransactions = (userId: string | undefined) => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const isSupabaseConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
@@ -35,91 +36,34 @@ export const useTransactions = (userId: string | undefined) => {
     [getStorageKey]
   );
 
-  // Buscar transações via API
-  const fetchTransactions = useCallback(async () => {
-    if (!userId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
+  // Fetch com cache React Query
+  const { data: transactions = [], isLoading: loading, error } = useQuery({
+    queryKey: [TRANSACTIONS_QUERY_KEY, userId],
+    queryFn: async () => {
+      if (!userId) return readLocalTransactions();
 
       if (!isSupabaseConfigured) {
-        const localItems = readLocalTransactions();
-        setTransactions(localItems);
-        return;
+        return readLocalTransactions();
       }
 
       const response = await fetch('/api/transactions');
       if (!response.ok) throw new Error('Erro ao buscar transações');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 min
+    gcTime: 30 * 60 * 1000,   // 30 min (antigo: cacheTime)
+    retry: 2,
+  });
 
-      const data = await response.json();
-      setTransactions(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar transações');
-      const localItems = readLocalTransactions();
-      setTransactions(localItems);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  // Buscar ao montar
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
-
-  // Adicionar transação via API
-  const addTransaction = useCallback(
-    async (transaction: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-      try {
-        setError(null);
-
-        if (!isSupabaseConfigured) {
-          const now = new Date().toISOString();
-          const id = typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `tx-${Date.now()}`;
-          const newItem: Transaction = {
-            id,
-            userId: userId || 'demo-user-123',
-            amount: Number(transaction.amount) || 0,
-            currency: transaction.currency || 'BRL',
-            category: transaction.category,
-            description: transaction.description,
-            type: transaction.type,
-            date: transaction.date as any,
-            tags: transaction.tags || [],
-            notes: transaction.notes,
-            createdAt: now as any,
-            updatedAt: now as any,
-          };
-
-          const updated = [newItem, ...readLocalTransactions()];
-          writeLocalTransactions(updated);
-          setTransactions(updated);
-          return newItem;
-        }
-
-        const response = await fetch('/api/transactions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(transaction),
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao adicionar transação');
-        }
-
-        const data = await response.json();
-        setTransactions(prev => [data, ...prev]);
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao adicionar transação');
+  // Add mutation
+  const addMutation = useMutation({
+    mutationFn: async (transaction: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+      if (!isSupabaseConfigured) {
         const now = new Date().toISOString();
         const id = typeof crypto !== 'undefined' && crypto.randomUUID
           ? crypto.randomUUID()
           : `tx-${Date.now()}`;
-        const newItem: Transaction = {
+        return {
           id,
           userId: userId || 'demo-user-123',
           amount: Number(transaction.amount) || 0,
@@ -132,103 +76,97 @@ export const useTransactions = (userId: string | undefined) => {
           notes: transaction.notes,
           createdAt: now as any,
           updatedAt: now as any,
-        };
-        const updated = [newItem, ...readLocalTransactions()];
-        writeLocalTransactions(updated);
-        setTransactions(updated);
-        return newItem;
+        } as Transaction;
       }
+
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transaction),
+      });
+
+      if (!response.ok) throw new Error('Erro ao adicionar transação');
+      return response.json();
     },
-    []
-  );
+    onSuccess: (newTransaction) => {
+      // Atualizar cache localmente
+      const updated = [newTransaction, ...readLocalTransactions()];
+      writeLocalTransactions(updated);
+      
+      // Invalidar cache React Query
+      queryClient.setQueryData([TRANSACTIONS_QUERY_KEY, userId], (old: Transaction[]) => 
+        [newTransaction, ...(old || [])]
+      );
+    },
+  });
 
-  // Deletar transação via API
-  const deleteTransaction = useCallback(
-    async (id: string) => {
-      try {
-        setError(null);
-
-        if (!isSupabaseConfigured) {
-          const updated = readLocalTransactions().filter(t => t.id !== id);
-          writeLocalTransactions(updated);
-          setTransactions(updated);
-          return;
-        }
-
-        const response = await fetch(`/api/transactions/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao deletar transação');
-        }
-
-        setTransactions(prev => prev.filter(t => t.id !== id));
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar transação');
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!isSupabaseConfigured) {
         const updated = readLocalTransactions().filter(t => t.id !== id);
         writeLocalTransactions(updated);
-        setTransactions(updated);
+        return id;
       }
+
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Erro ao deletar transação');
+      return id;
     },
-    []
-  );
+    onSuccess: (id) => {
+      const updated = readLocalTransactions().filter(t => t.id !== id);
+      writeLocalTransactions(updated);
+      
+      queryClient.setQueryData([TRANSACTIONS_QUERY_KEY, userId], (old: Transaction[]) => 
+        (old || []).filter(t => t.id !== id)
+      );
+    },
+  });
 
-  // Atualizar transação via API
-  const updateTransaction = useCallback(
-    async (id: string, updates: Partial<Transaction>) => {
-      try {
-        setError(null);
-
-        if (!isSupabaseConfigured) {
-          const updatedAt = new Date().toISOString();
-          const items = readLocalTransactions().map(item =>
-            item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
-          );
-          writeLocalTransactions(items);
-          const updatedItem = items.find(item => item.id === id);
-          setTransactions(items);
-          return updatedItem as Transaction;
-        }
-
-        const response = await fetch(`/api/transactions/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          throw new Error('Erro ao atualizar transação');
-        }
-
-        const data = await response.json();
-        setTransactions(prev =>
-          prev.map(t => (t.id === id ? data : t))
-        );
-
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao atualizar transação');
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Transaction> }) => {
+      if (!isSupabaseConfigured) {
         const updatedAt = new Date().toISOString();
         const items = readLocalTransactions().map(item =>
           item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
         );
         writeLocalTransactions(items);
-        const updatedItem = items.find(item => item.id === id);
-        setTransactions(items);
-        return updatedItem as Transaction;
+        return items.find(item => item.id === id) as Transaction;
       }
+
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) throw new Error('Erro ao atualizar transação');
+      return response.json();
     },
-    []
-  );
+    onSuccess: (updatedTransaction) => {
+      const updated = readLocalTransactions().map(t => 
+        t.id === updatedTransaction.id ? updatedTransaction : t
+      );
+      writeLocalTransactions(updated);
+      
+      queryClient.setQueryData([TRANSACTIONS_QUERY_KEY, userId], (old: Transaction[]) => 
+        (old || []).map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
+      );
+    },
+  });
 
   return {
     transactions,
     loading,
-    error,
-    addTransaction,
-    deleteTransaction,
-    updateTransaction,
-    refetch: fetchTransactions,
+    error: error?.message || null,
+    addTransaction: addMutation.mutateAsync,
+    deleteTransaction: deleteMutation.mutateAsync,
+    updateTransaction: (id: string, updates: Partial<Transaction>) => 
+      updateMutation.mutateAsync({ id, updates }),
+    refetch: () => queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_QUERY_KEY, userId] }),
   };
 };

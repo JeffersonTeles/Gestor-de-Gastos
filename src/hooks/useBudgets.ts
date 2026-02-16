@@ -1,7 +1,9 @@
 'use client';
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
-import { useCallback, useEffect, useState } from 'react';
+
+const BUDGETS_QUERY_KEY = 'budgets';
 
 export interface Budget {
   id: string;
@@ -17,122 +19,96 @@ export interface Budget {
 
 export const useBudgets = (userId: string | undefined) => {
   const { categories } = useCategories();
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // Buscar orçamentos
-  const fetchBudgets = useCallback(async (month?: string) => {
-    if (!userId) return;
+  // Fetch com cache React Query
+  const { data: budgets = [], isLoading: loading, error } = useQuery({
+    queryKey: [BUDGETS_QUERY_KEY, userId],
+    queryFn: async () => {
+      if (!userId) return [];
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      const url = month ? `/api/budgets?month=${month}` : '/api/budgets';
-      const response = await fetch(url);
+      const response = await fetch('/api/budgets');
       if (!response.ok) throw new Error('Erro ao buscar orçamentos');
-
-      const data = await response.json();
-      setBudgets(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar orçamentos');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  // Buscar ao montar
-  useEffect(() => {
-    fetchBudgets();
-  }, [fetchBudgets]);
-
-  // Adicionar orçamento
-  const addBudget = useCallback(
-    async (budget: Partial<Budget>) => {
-      try {
-        setError(null);
-
-        const response = await fetch('/api/budgets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(budget),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao criar orçamento');
-        }
-
-        const data = await response.json();
-        await fetchBudgets(); // Recarregar para obter dados calculados
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao adicionar orçamento');
-        throw err;
-      }
+      return response.json();
     },
-    [fetchBudgets]
-  );
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    enabled: !!userId,
+  });
 
-  // Deletar orçamento
-  const deleteBudget = useCallback(
-    async (id: string) => {
-      try {
-        setError(null);
+  // Add mutation
+  const addMutation = useMutation({
+    mutationFn: async (budget: Partial<Budget>) => {
+      const response = await fetch('/api/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(budget),
+      });
 
-        const response = await fetch(`/api/budgets/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao deletar orçamento');
-        }
-
-        setBudgets(prev => prev.filter(b => b.id !== id));
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar orçamento');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao criar orçamento');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BUDGETS_QUERY_KEY, userId] });
+    },
+  });
 
-  // Atualizar orçamento
-  const updateBudget = useCallback(
-    async (id: string, updates: Partial<Budget>) => {
-      try {
-        setError(null);
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/budgets/${id}`, {
+        method: 'DELETE',
+      });
 
-        const response = await fetch(`/api/budgets/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao atualizar orçamento');
-        }
-
-        await fetchBudgets(); // Recarregar para obter dados calculados
-      } catch (err: any) {
-        setError(err.message || 'Erro ao atualizar orçamento');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao deletar orçamento');
       }
+
+      return id;
     },
-    [fetchBudgets]
-  );
+    onSuccess: (id) => {
+      queryClient.setQueryData([BUDGETS_QUERY_KEY, userId], (old: Budget[]) => 
+        (old || []).filter(b => b.id !== id)
+      );
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Budget> }) => {
+      const response = await fetch(`/api/budgets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar orçamento');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BUDGETS_QUERY_KEY, userId] });
+    },
+  });
 
   return {
     budgets,
     categories,
     loading,
-    error,
-    addBudget,
-    deleteBudget,
-    updateBudget,
-    refetch: fetchBudgets,
+    error: error?.message || null,
+    addBudget: addMutation.mutateAsync,
+    deleteBudget: deleteMutation.mutateAsync,
+    updateBudget: (id: string, updates: Partial<Budget>) => 
+      updateMutation.mutateAsync({ id, updates }),
+    refetch: () => queryClient.invalidateQueries({ queryKey: [BUDGETS_QUERY_KEY, userId] }),
   };
 };

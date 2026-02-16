@@ -9,7 +9,7 @@ import { useState } from 'react';
 
 export default function BudgetsPage() {
   const { user } = useAuth();
-  const { budgets, categories, addBudget, deleteBudget, updateBudget, refetch } = useBudgets(user?.id);
+  const { budgets, categories, addBudget, deleteBudget, updateBudget } = useBudgets(user?.id);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -56,10 +56,10 @@ export default function BudgetsPage() {
 
   const handleMonthChange = async (month: string) => {
     setSelectedMonth(month);
-    await refetch(month);
+    // React Query vai cache automaticamente
   };
 
-  const filteredBudgets = budgets.filter(budget => {
+  const filteredBudgets = budgets.filter((budget: Budget) => {
     const budgetMonth = new Date(budget.month).toISOString().slice(0, 7);
     return budgetMonth === selectedMonth;
   });

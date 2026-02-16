@@ -1,6 +1,6 @@
 'use client';
 
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, type Category } from '@/hooks/useCategories';
 import { useEffect, useState } from 'react';
 
 interface SearchFilters {
@@ -80,7 +80,7 @@ export const SearchBar = ({
     setFilters((prev) => ({
       ...prev,
       categories: prev.categories.includes(categoryId)
-        ? prev.categories.filter((c) => c !== categoryId)
+        ? prev.categories.filter((c: string) => c !== categoryId)
         : [...prev.categories, categoryId],
     }));
   };
@@ -89,7 +89,7 @@ export const SearchBar = ({
     setFilters((prev) => ({
       ...prev,
       tags: prev.tags.includes(tag)
-        ? prev.tags.filter((t) => t !== tag)
+        ? prev.tags.filter((t: string) => t !== tag)
         : [...prev.tags, tag],
     }));
   };
@@ -252,7 +252,7 @@ export const SearchBar = ({
                 🏷️ Categorias
               </label>
               <div className="flex flex-wrap gap-2">
-                {allCategories.map((cat) => (
+                {allCategories.map((cat: Category) => (
                   <button
                     key={cat.id}
                     onClick={() => handleCategoryToggle(cat.id)}
@@ -275,7 +275,7 @@ export const SearchBar = ({
                   🔖 Tags
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => (
+                  {availableTags.map((tag: string) => (
                     <button
                       key={tag}
                       onClick={() => handleTagToggle(tag)}

@@ -79,7 +79,7 @@ export default function LoansPage() {
   };
 
   const totals = loans.reduce(
-    (acc, loan) => {
+    (acc: { lent: number; lentPaid: number; borrowed: number; borrowedPaid: number }, loan: Loan) => {
       const amount = Number(loan.amount);
       const paidAmount = Number(loan.paidAmount);
       

@@ -1,7 +1,7 @@
 'use client';
 
 import { MoneyInput } from '@/components/ui/MoneyInput';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, type Category } from '@/hooks/useCategories';
 import { useEffect, useState } from 'react';
 
 interface TransactionData {
@@ -243,7 +243,7 @@ export const TransactionModal = ({
                 className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
               >
                 <option value="">Escolha uma categoria</option>
-                {categories.map(cat => (
+                {categories.map((cat: Category) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.icon} {cat.name}
                   </option>
@@ -346,7 +346,7 @@ export const TransactionModal = ({
               {/* Tags sugeridas */}
               <div className="flex flex-wrap gap-2 mt-3">
                 <span className="text-xs text-slate-500">Sugestões:</span>
-                {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 5).map((tag) => (
+                {SUGGESTED_TAGS.filter(tag => !tags.includes(tag)).slice(0, 5).map((tag: string) => (
                   <button
                     key={tag}
                     type="button"

@@ -1,143 +1,133 @@
 'use client';
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bill, BillPayload } from '@/types/index';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+
+const BILLS_QUERY_KEY = 'bills';
 
 export const useBills = (userId: string | undefined) => {
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchBills = useCallback(async (month?: string) => {
-    if (!userId) return;
+  // Fetch com cache React Query
+  const { data: bills = [], isLoading: loading, error } = useQuery({
+    queryKey: [BILLS_QUERY_KEY, userId],
+    queryFn: async () => {
+      if (!userId) return [];
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      const url = month ? `/api/bills?month=${month}` : '/api/bills';
-      const response = await fetch(url);
+      const response = await fetch('/api/bills');
       if (!response.ok) throw new Error('Erro ao buscar contas');
-
-      const data = await response.json();
-      setBills(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar contas');
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchBills();
-  }, [fetchBills]);
-
-  const addBill = useCallback(
-    async (bill: BillPayload) => {
-      try {
-        setError(null);
-
-        const response = await fetch('/api/bills', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bill),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao criar conta');
-        }
-
-        const data = await response.json();
-        setBills(prev => [data, ...prev]);
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao adicionar conta');
-        throw err;
-      }
+      return response.json();
     },
-    []
-  );
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    enabled: !!userId,
+  });
 
-  const updateBill = useCallback(
-    async (id: string, updates: BillPayload) => {
-      try {
-        setError(null);
+  // Add mutation
+  const addMutation = useMutation({
+    mutationFn: async (bill: BillPayload) => {
+      const response = await fetch('/api/bills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bill),
+      });
 
-        const response = await fetch(`/api/bills/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao atualizar conta');
-        }
-
-        const data = await response.json();
-        setBills(prev => prev.map(b => (b.id === id ? data : b)));
-        return data;
-      } catch (err: any) {
-        setError(err.message || 'Erro ao atualizar conta');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao criar conta');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: (newBill) => {
+      queryClient.setQueryData([BILLS_QUERY_KEY, userId], (old: Bill[]) => 
+        [newBill, ...(old || [])]
+      );
+    },
+  });
 
-  const deleteBill = useCallback(
-    async (id: string) => {
-      try {
-        setError(null);
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: BillPayload }) => {
+      const response = await fetch(`/api/bills/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
 
-        const response = await fetch(`/api/bills/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Erro ao deletar conta');
-        }
-
-        setBills(prev => prev.filter(b => b.id !== id));
-      } catch (err: any) {
-        setError(err.message || 'Erro ao deletar conta');
-        throw err;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar conta');
       }
+
+      return response.json();
     },
-    []
-  );
+    onSuccess: (updatedBill) => {
+      queryClient.setQueryData([BILLS_QUERY_KEY, userId], (old: Bill[]) => 
+        (old || []).map(b => b.id === updatedBill.id ? updatedBill : b)
+      );
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/bills/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao deletar conta');
+      }
+
+      return id;
+    },
+    onSuccess: (id) => {
+      queryClient.setQueryData([BILLS_QUERY_KEY, userId], (old: Bill[]) => 
+        (old || []).filter(b => b.id !== id)
+      );
+    },
+  });
 
   const markAsPaid = useCallback(
-    async (bill: Bill) => {
-      return updateBill(bill.id, {
-        status: 'paid',
-        paidAt: new Date(),
+    (bill: Bill) => {
+      return updateMutation.mutateAsync({
+        id: bill.id,
+        updates: {
+          status: 'paid' as any,
+          paidAt: new Date(),
+        } as BillPayload,
       });
     },
-    [updateBill]
+    [updateMutation]
   );
 
   const reopenBill = useCallback(
-    async (bill: Bill) => {
-      return updateBill(bill.id, {
-        status: 'open',
-        paidAt: null,
+    (bill: Bill) => {
+      return updateMutation.mutateAsync({
+        id: bill.id,
+        updates: {
+          status: 'open' as any,
+          paidAt: null,
+        } as BillPayload,
       });
     },
-    [updateBill]
+    [updateMutation]
   );
 
   return {
     bills,
     loading,
-    error,
-    addBill,
-    updateBill,
-    deleteBill,
+    error: error?.message || null,
+    addBill: addMutation.mutateAsync,
+    updateBill: (id: string, updates: BillPayload) => 
+      updateMutation.mutateAsync({ id, updates }),
+    deleteBill: deleteMutation.mutateAsync,
     markAsPaid,
     reopenBill,
-    refetch: fetchBills,
+    refetch: () => queryClient.invalidateQueries({ queryKey: [BILLS_QUERY_KEY, userId] }),
   };
 };

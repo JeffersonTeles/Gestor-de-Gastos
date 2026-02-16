@@ -1,6 +1,6 @@
 'use client';
 
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, type Category } from '@/hooks/useCategories';
 import { Bill, BillPayload } from '@/types/index';
 import { useEffect, useState } from 'react';
 
@@ -125,10 +125,10 @@ export const BillModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative w-full bg-white rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">
@@ -196,7 +196,7 @@ export const BillModal = ({
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Escolha uma categoria</option>
-                {categories.map(cat => (
+                {categories.map((cat: Category) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.icon} {cat.name}
                   </option>
@@ -302,7 +302,7 @@ export const BillModal = ({
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value as 'open' | 'paid' | 'canceled')}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 text-lg border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="open">Em aberto</option>
                   <option value="paid">Pago</option>

@@ -31,7 +31,7 @@ export const BudgetModal = ({
   const [error, setError] = useState('');
 
   // Filtrar apenas categorias de despesa
-  const expenseCategories = categories.filter(c => c.type === 'expense' || c.type === 'both');
+  const expenseCategories = categories.filter((c: Category) => c.type === 'expense' || c.type === 'both');
 
   useEffect(() => {
     if (mode === 'edit' && budget) {
@@ -82,7 +82,7 @@ export const BudgetModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50"
@@ -90,7 +90,7 @@ export const BudgetModal = ({
       />
 
       {/* Modal */}
-      <div className="relative w-full bg-white rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">

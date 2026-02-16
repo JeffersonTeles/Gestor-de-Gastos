@@ -54,7 +54,7 @@ export const MobileBottomBar = () => {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 z-50 safe-bottom">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 z-50 pb-safe-bottom">
       <div className="grid grid-cols-4 h-16">
         {navItems.map((item) => {
           const active = isActive(item.href);

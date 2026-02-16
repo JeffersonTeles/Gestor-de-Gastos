@@ -67,7 +67,7 @@ export const PaymentModal = ({
   const remainingAmount = Number(loan.amount) - Number(loan.paidAmount);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50"
@@ -75,7 +75,7 @@ export const PaymentModal = ({
       />
 
       {/* Modal */}
-      <div className="relative w-full bg-white rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">

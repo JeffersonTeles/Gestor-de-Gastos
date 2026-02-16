@@ -166,7 +166,7 @@ export default function DashboardPage() {
       {/* Botão Flutuante */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all font-bold"
+        className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all font-bold z-30"
         title="Adicionar transação"
       >
         +
