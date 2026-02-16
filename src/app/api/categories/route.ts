@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // Categorias padrão
 const DEFAULT_CATEGORIES = [
   // Despesas
