@@ -1,13 +1,9 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-
-// Componentes não-críticos carregados sob demanda
 const BarChart = dynamic(() => import('@/components/charts/BarChart').then(mod => ({ default: mod.BarChart })));
 const LineChart = dynamic(() => import('@/components/charts/LineChart').then(mod => ({ default: mod.LineChart })));
 const PieChart = dynamic(() => import('@/components/charts/PieChart').then(mod => ({ default: mod.PieChart })));

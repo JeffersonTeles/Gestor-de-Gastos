@@ -12,11 +12,11 @@
  * const { data, isLoading, error } = useTransactionsQuery(userId);
  */
 
+// Exemplo de como usar React Query
+/*
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryClient';
 
-// Exemplo de como usar React Query
-/*
 export function useTransactionsQuery(userId?: string) {
   return useQuery({
     queryKey: queryKeys.transactionsList(),

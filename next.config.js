@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   productionBrowserSourceMaps: false,
   
   // Otimização de imagens
@@ -29,9 +28,6 @@ const nextConfig = {
       '@': './src',
     },
   },
-
-  // Compressão Brotli
-  compress: true,
 
   experimental: {
     optimizePackageImports: ['recharts', '@supabase/supabase-js'],
