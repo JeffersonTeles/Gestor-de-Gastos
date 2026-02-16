@@ -26,3 +26,17 @@ out/
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation e setup files
+docs/
+CHANGELOG.md
+SUPABASE_SETUP.md
+WHATSAPP_SETUP.md
+WHATSAPP_INTEGRATION.md
+*.bat
+*.cmd
+*.ps1
+dev-server.log
+metadata.json
+PRONTO.md
+AUDITORIA_LIMPEZA.md

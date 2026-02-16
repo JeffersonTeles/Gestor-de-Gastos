@@ -56,6 +56,24 @@ export const Sidebar = () => {
         </svg>
       ),
     },
+    {
+      label: 'Metas',
+      href: '/goals',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Relatórios',
+      href: '/reports',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      ),
+    },
   ];
 
   const isActive = (href: string) => {
@@ -78,17 +96,17 @@ export const Sidebar = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`app-sidebar bg-white border-r border-neutral-200 ${isMobileOpen ? 'mobile-open' : ''}`}>
+      <aside className={`app-sidebar bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 ${isMobileOpen ? 'mobile-open' : ''}`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="h-[var(--topbar-height)] flex items-center px-6 border-b border-neutral-200">
+          <div className="h-[var(--topbar-height)] flex items-center px-6 border-b border-neutral-200 dark:border-neutral-700">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
                 G
               </div>
               <div>
-                <h1 className="text-lg font-bold text-neutral-900">Gestor</h1>
-                <p className="text-xs text-neutral-500">Financeiro</p>
+                <h1 className="text-lg font-bold text-neutral-900 dark:text-white">Gestor</h1>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Financeiro</p>
               </div>
             </Link>
           </div>
@@ -103,8 +121,8 @@ export const Sidebar = () => {
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     active
-                      ? 'bg-primary-50 text-primary-700 font-medium shadow-sm'
-                      : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium shadow-sm'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white'
                   }`}
                   onClick={() => setIsMobileOpen(false)}
                 >
@@ -116,16 +134,16 @@ export const Sidebar = () => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-neutral-200">
+          <div className="p-4 border-t border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-sm">
                 {user.email?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-neutral-900 truncate">
+                <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
                   {user.email?.split('@')[0]}
                 </p>
-                <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">{user.email}</p>
               </div>
             </div>
           </div>

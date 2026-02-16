@@ -3,8 +3,8 @@
 import { BudgetCard } from '@/components/dashboard/BudgetCard';
 import { BudgetModal } from '@/components/dashboard/BudgetModal';
 import { Topbar } from '@/components/layout/Topbar';
-import { Budget, useBudgets } from '@/hooks/useBudgets';
 import { useAuth } from '@/hooks/useAuth';
+import { Budget, useBudgets } from '@/hooks/useBudgets';
 import { useState } from 'react';
 
 export default function BudgetsPage() {

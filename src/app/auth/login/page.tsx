@@ -58,7 +58,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary-50 to-primary-100">
         <div>
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center text-white font-bold text-xl shadow-lg">
               G
             </div>
             <span className="text-xl font-bold text-neutral-900">Gestor de Gastos</span>

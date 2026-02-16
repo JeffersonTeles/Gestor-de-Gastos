@@ -23,7 +23,7 @@ export const BalanceCard = ({ transactions }: BalanceCardProps) => {
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-4">
       {/* Saldo Principal */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-teal-600 via-teal-700 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
         <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Saldo Total</p>
         <h2 className="text-3xl font-bold mt-2">{formatCurrency(balance)}</h2>
         <p className="text-xs opacity-80 mt-2">Atualizado com base nas transações filtradas</p>

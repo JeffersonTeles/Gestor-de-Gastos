@@ -36,21 +36,20 @@ export const Topbar = ({ title, subtitle, actions, showBreadcrumbs = true }: Top
   };
 
   return (
-    <div className="app-topbar bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 backdrop-blur-sm bg-white/95 dark:bg-neutral-800/95">
-      <div className="h-full px-6 flex flex-col justify-center gap-2">
-        <div className="flex items-center justify-between gap-4">
-          {/* Title Section */}
-          <div className="flex-1">
-            {showBreadcrumbs && <Breadcrumbs />}
-            {title && (
-              <div className="mt-1">
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white">{title}</h2>
-                {subtitle && (
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{subtitle}</p>
-                )}
-              </div>
-            )}
-          </div>
+    <div className="app-topbar bg-white/95 dark:bg-neutral-800/95 border-b border-neutral-200 dark:border-neutral-700 backdrop-blur-sm">
+      <div className="h-full px-6 flex items-center justify-between gap-4">
+        {/* Title Section */}
+        <div className="flex-1">
+          {showBreadcrumbs && !title && <Breadcrumbs />}
+          {title && (
+            <div>
+              <h2 className="text-xl font-bold text-neutral-900 dark:text-white">{title}</h2>
+              {subtitle && (
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{subtitle}</p>
+              )}
+            </div>
+          )}
+        </div>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
@@ -169,7 +168,6 @@ export const Topbar = ({ title, subtitle, actions, showBreadcrumbs = true }: Top
             {/* Custom Actions */}
             {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
-        </div>
       </div>
     </div>
   );

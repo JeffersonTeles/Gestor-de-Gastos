@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useInsights } from '@/hooks/useInsights';
 import { usePredictions } from '@/hooks/usePredictions';
 import { useTransactions } from '@/hooks/useTransactions';
+import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -225,7 +226,7 @@ export default function DashboardPage() {
       setIsModalOpen(false);
       showToast(
         'success',
-        `${data.type === 'income' ? 'Receita' : 'Despesa'} de R$ ${Number(data.amount).toFixed(2)} adicionada com sucesso!`
+        `${data.type === 'income' ? 'Receita' : 'Despesa'} de ${formatCurrency(Number(data.amount))} adicionada com sucesso!`
       );
     } catch (error: any) {
       showToast('error', error.message || 'Erro ao salvar transação');
@@ -344,7 +345,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
             <MetricCard
               title="Saldo Total"
-              value={`R$ ${Math.abs(stats.total).toFixed(2)}`}
+              value={formatCurrency(Math.abs(stats.total))}
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -355,7 +356,7 @@ export default function DashboardPage() {
 
             <MetricCard
               title="Receitas"
-              value={`R$ ${stats.income.toFixed(2)}`}
+              value={formatCurrency(stats.income)}
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -366,7 +367,7 @@ export default function DashboardPage() {
 
             <MetricCard
               title="Despesas"
-              value={`R$ ${stats.expense.toFixed(2)}`}
+              value={formatCurrency(stats.expense)}
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
@@ -582,7 +583,7 @@ export default function DashboardPage() {
                         <td className={`px-6 py-4 text-right text-sm font-semibold ${
                           tx.type === 'income' ? 'text-success-600' : 'text-danger-600'
                         }`}>
-                          {tx.type === 'income' ? '+' : '-'} R$ {Number(tx.amount).toFixed(2)}
+                          {tx.type === 'income' ? '+' : '-'} {formatCurrency(Number(tx.amount))}
                         </td>
                         <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">
                           {new Date(tx.date).toLocaleDateString('pt-BR')}

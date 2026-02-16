@@ -209,5 +209,10 @@ export const detectSuspiciousPatterns = (text: string): boolean => {
 // Formatação segura de números
 export const formatSafeNumber = (value: number): string => {
   if (!isValidMoneyValue(value)) return 'R$ 0,00';
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return value.toLocaleString('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };

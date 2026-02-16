@@ -1,6 +1,7 @@
 'use client';
 
 import { useToast } from '@/contexts/ToastContext';
+import { formatCurrency } from '@/lib/utils';
 import { useMemo, useState } from 'react';
 
 interface WeeklyReviewProps {
@@ -129,19 +130,19 @@ export const WeeklyReview = ({ isOpen, onClose, transactions }: WeeklyReviewProp
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-emerald-500">
             <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">Receitas</div>
             <div className="text-2xl font-bold text-emerald-700">
-              R$ {weekData.income.toFixed(2)}
+              {formatCurrency(weekData.income)}
             </div>
           </div>
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-amber-500">
             <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">Despesas</div>
             <div className="text-2xl font-bold text-amber-700">
-              R$ {weekData.expense.toFixed(2)}
+              {formatCurrency(weekData.expense)}
             </div>
           </div>
           <div className={`glass-panel rounded-2xl p-4 border-l-4 ${weekData.balance >= 0 ? 'border-teal-500' : 'border-red-500'}`}>
             <div className="text-xs uppercase tracking-wide text-slate-500 mb-1">Saldo</div>
             <div className={`text-2xl font-bold ${weekData.balance >= 0 ? 'text-teal-700' : 'text-red-700'}`}>
-              {weekData.balance >= 0 ? '+' : ''}R$ {weekData.balance.toFixed(2)}
+              {weekData.balance >= 0 ? '+' : ''}{formatCurrency(Math.abs(weekData.balance))}
             </div>
           </div>
         </div>
@@ -268,7 +269,7 @@ export const WeeklyReview = ({ isOpen, onClose, transactions }: WeeklyReviewProp
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-medium text-[var(--ink)]">{category}</span>
-                      <span className="text-sm font-semibold">R$ {amount.toFixed(2)}</span>
+                      <span className="text-sm font-semibold">{formatCurrency(amount)}</span>
                     </div>
                     <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div

@@ -1,6 +1,7 @@
 'use client';
 
 import { useBudgets } from '@/hooks/useBudgets';
+import { formatCurrency } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface Alert {
@@ -52,7 +53,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
           id: `${alertId}-danger`,
           type: 'danger',
           title: '🚨 Orçamento estourado!',
-          message: `Você gastou R$ ${spent.toFixed(2)} em ${budget.category}, ultrapassando o limite de R$ ${limit.toFixed(2)} (${percentage.toFixed(0)}%)`,
+          message: `Você gastou ${formatCurrency(spent)} em ${budget.category}, ultrapassando o limite de ${formatCurrency(limit)} (${percentage.toFixed(0)}%)`,
           action: {
             label: 'Ver Orçamentos',
             onClick: () => onViewBudgets?.(),
@@ -63,7 +64,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
           id: `${alertId}-warning`,
           type: 'warning',
           title: '⚠️ Atenção ao orçamento',
-          message: `Você já gastou ${percentage.toFixed(0)}% do orçamento de ${budget.category} (R$ ${spent.toFixed(2)} de R$ ${limit.toFixed(2)})`,
+          message: `Você já gastou ${percentage.toFixed(0)}% do orçamento de ${budget.category} (${formatCurrency(spent)} de ${formatCurrency(limit)})`,
           action: {
             label: 'Ver Orçamentos',
             onClick: () => onViewBudgets?.(),
@@ -92,7 +93,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
           id: 'high-spending-today',
           type: 'info',
           title: '💡 Gastos altos hoje',
-          message: `Você gastou R$ ${todaySpending.toFixed(2)} hoje, acima da sua média diária de R$ ${avgDaily.toFixed(2)}`,
+          message: `Você gastou ${formatCurrency(todaySpending)} hoje, acima da sua média diária de ${formatCurrency(avgDaily)}`,
         });
       }
     }
