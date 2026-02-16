@@ -16,6 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" data-scroll-behavior="smooth">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      </head>
       <body className="page-shell">
         <ClientProviders>
           <Suspense fallback={null}>

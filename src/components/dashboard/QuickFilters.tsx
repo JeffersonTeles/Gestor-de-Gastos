@@ -44,8 +44,7 @@ export const QuickFilters = ({ onPeriodChange, onTypeChange }: QuickFiltersProps
           </svg>
           Período
         </h3>
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
-          {periods.map((period) => (
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin w-full">\n          {periods.map((period) => (
             <button
               key={period.value}
               onClick={() => handlePeriodChange(period.value)}

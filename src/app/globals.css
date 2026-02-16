@@ -10,12 +10,20 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 body {
   @apply text-neutral-900 antialiased;
   font-family: var(--font-primary);
   background: #fafbfc;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 :root {
