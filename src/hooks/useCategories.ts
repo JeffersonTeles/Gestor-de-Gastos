@@ -18,9 +18,6 @@ export interface Category {
 
 export const useCategories = () => {
   const queryClient = useQueryClient();
-  const isSupabaseConfigured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
 
   const DEFAULT_CATEGORIES: Category[] = [
     { id: 'exp-food', userId: 'demo', name: 'Alimentação', type: 'expense', icon: '🍔', color: '#ef4444', isDefault: true, createdAt: new Date(), updatedAt: new Date() },

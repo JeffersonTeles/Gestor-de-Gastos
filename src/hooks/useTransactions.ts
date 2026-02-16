@@ -8,9 +8,6 @@ const TRANSACTIONS_QUERY_KEY = 'transactions';
 
 export const useTransactions = (userId: string | undefined) => {
   const queryClient = useQueryClient();
-  const isSupabaseConfigured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
 
   const getStorageKey = useCallback(() => {
     return userId ? `transactions_${userId}` : 'transactions_anon';
