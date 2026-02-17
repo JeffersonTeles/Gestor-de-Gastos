@@ -46,9 +46,15 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
     setIsLoaded(true);
   }, []);
 
-  // Criar versão serializada de transactions e budgets para evitar mudanças de referência
-  const transactionsKey = useMemo(() => JSON.stringify(transactions), [transactions]);
-  const budgetsKey = useMemo(() => JSON.stringify(budgets), [budgets]);
+  // Criar chave leve para detectar mudanças sem serializar tudo
+  const transactionsKey = useMemo(() => 
+    `${transactions.length}-${transactions[0]?.id || ''}-${transactions[transactions.length - 1]?.id || ''}`,
+    [transactions]
+  );
+  const budgetsKey = useMemo(() => 
+    `${budgets.length}-${budgets.map((b: any) => b.id).join(',')}`,
+    [budgets]
+  );
 
   useEffect(() => {
     if (!userId || !transactions.length || !isLoaded) return;
