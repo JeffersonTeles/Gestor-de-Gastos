@@ -2,7 +2,7 @@
 
 import { useBudgets } from '@/hooks/useBudgets';
 import { formatCurrency, getTodayLocalDate, getCurrentMonthLocal } from '@/lib/utils';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 
 interface Alert {
   id: string;
@@ -25,7 +25,13 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
   const { budgets } = useBudgets(userId);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const dismissedAlertsRef = useRef<Set<string>>(new Set());
+  const onViewBudgetsRef = useRef(onViewBudgets);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Atualizar ref quando onViewBudgets mudar
+  useEffect(() => {
+    onViewBudgetsRef.current = onViewBudgets;
+  }, [onViewBudgets]);
 
   // Carregar alertas dispensados do localStorage apenas uma vez
   useEffect(() => {
@@ -39,6 +45,10 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
     }
     setIsLoaded(true);
   }, []);
+
+  // Criar versão serializada de transactions e budgets para evitar mudanças de referência
+  const transactionsKey = useMemo(() => JSON.stringify(transactions), [transactions]);
+  const budgetsKey = useMemo(() => JSON.stringify(budgets), [budgets]);
 
   useEffect(() => {
     if (!userId || !transactions.length || !isLoaded) return;
@@ -71,7 +81,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
           message: `Você gastou ${formatCurrency(spent)} em ${budget.category}, ultrapassando o limite de ${formatCurrency(limit)} (${percentage.toFixed(0)}%)`,
           action: {
             label: 'Ver Orçamentos',
-            onClick: () => onViewBudgets?.(),
+            onClick: () => onViewBudgetsRef.current?.(),
           },
         });
       } else if (percentage >= 80 && percentage < 100 && !dismissedAlerts.has(`${alertId}-warning`)) {
@@ -82,7 +92,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
           message: `Você já gastou ${percentage.toFixed(0)}% do orçamento de ${budget.category} (${formatCurrency(spent)} de ${formatCurrency(limit)})`,
           action: {
             label: 'Ver Orçamentos',
-            onClick: () => onViewBudgets?.(),
+            onClick: () => onViewBudgetsRef.current?.(),
           },
         });
       }
@@ -114,7 +124,8 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
     }
 
     setAlerts(newAlerts);
-  }, [userId, transactions, budgets, onViewBudgets, isLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, transactionsKey, budgetsKey, isLoaded]);
 
   const handleDismiss = (id: string) => {
     dismissedAlertsRef.current.add(id);
