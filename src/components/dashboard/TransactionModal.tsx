@@ -73,12 +73,12 @@ export const TransactionModal = ({
     }
   }, [isOpen, mode, defaultType]);
 
+  // Auto-selecionar primeira categoria quando tipo muda
   useEffect(() => {
-    if (!isOpen || mode !== 'create') return;
-    if (!category && categories.length > 0) {
+    if (mode === 'create' && categories.length > 0 && !category) {
       setCategory(categories[0].name);
     }
-  }, [categories, category, isOpen, mode]);
+  }, [type, categories, category, mode]);
 
   // Atualizar formulário quando em modo edição
   useEffect(() => {
@@ -198,12 +198,12 @@ export const TransactionModal = ({
                 type="button"
                 onClick={() => {
                   setType('expense');
-                  setCategory('');
+                  setCategory(''); // Será preenchido pelo useEffect
                 }}
                 className={`py-3 px-4 rounded-lg font-semibold transition ${
                   type === 'expense'
                     ? 'bg-amber-500 text-white'
-                    : 'bg-slate-100 text-slate-700'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 Despesa 📉
@@ -212,12 +212,12 @@ export const TransactionModal = ({
                 type="button"
                 onClick={() => {
                   setType('income');
-                  setCategory('');
+                  setCategory(''); // Será preenchido pelo useEffect
                 }}
                 className={`py-3 px-4 rounded-lg font-semibold transition ${
                   type === 'income'
                     ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-700'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 Receita 📈
@@ -240,9 +240,10 @@ export const TransactionModal = ({
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+                required
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 bg-white transition-colors"
               >
-                <option value="">Escolha uma categoria</option>
+                <option value="" disabled>Escolha uma categoria</option>
                 {categories.map((cat: Category) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.icon} {cat.name}
