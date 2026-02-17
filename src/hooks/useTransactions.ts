@@ -46,38 +46,27 @@ export const useTransactions = (userId: string | undefined) => {
     retry: 0, // Sem retry (localStorage não falha)
   });
 
-  // Add mutation
+  // Add mutation (localStorage apenas)
   const addMutation = useMutation({
     mutationFn: async (transaction: Omit<Transaction, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-      if (!isSupabaseConfigured) {
-        const now = new Date().toISOString();
-        const id = typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `tx-${Date.now()}`;
-        return {
-          id,
-          userId: userId || 'demo-user-123',
-          amount: Number(transaction.amount) || 0,
-          currency: transaction.currency || 'BRL',
-          category: transaction.category,
-          description: transaction.description,
-          type: transaction.type,
-          date: transaction.date as any,
-          tags: transaction.tags || [],
-          notes: transaction.notes,
-          createdAt: now as any,
-          updatedAt: now as any,
-        } as Transaction;
-      }
-
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(transaction),
-      });
-
-      if (!response.ok) throw new Error('Erro ao adicionar transação');
-      return response.json();
+      const now = new Date().toISOString();
+      const id = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `tx-${Date.now()}`;
+      return {
+        id,
+        userId: userId || 'demo-user-123',
+        amount: Number(transaction.amount) || 0,
+        currency: transaction.currency || 'BRL',
+        category: transaction.category,
+        description: transaction.description,
+        type: transaction.type,
+        date: transaction.date as any,
+        tags: transaction.tags || [],
+        notes: transaction.notes,
+        createdAt: now as any,
+        updatedAt: now as any,
+      } as Transaction;
     },
     onSuccess: (newTransaction) => {
       // Atualizar cache localmente
@@ -91,20 +80,11 @@ export const useTransactions = (userId: string | undefined) => {
     },
   });
 
-  // Delete mutation
+  // Delete mutation (localStorage apenas)
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!isSupabaseConfigured) {
-        const updated = readLocalTransactions().filter(t => t.id !== id);
-        writeLocalTransactions(updated);
-        return id;
-      }
-
-      const response = await fetch(`/api/transactions/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Erro ao deletar transação');
+      const updated = readLocalTransactions().filter(t => t.id !== id);
+      writeLocalTransactions(updated);
       return id;
     },
     onSuccess: (id) => {
@@ -117,26 +97,15 @@ export const useTransactions = (userId: string | undefined) => {
     },
   });
 
-  // Update mutation
+  // Update mutation (localStorage apenas)
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Transaction> }) => {
-      if (!isSupabaseConfigured) {
-        const updatedAt = new Date().toISOString();
-        const items = readLocalTransactions().map(item =>
-          item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
-        );
-        writeLocalTransactions(items);
-        return items.find(item => item.id === id) as Transaction;
-      }
-
-      const response = await fetch(`/api/transactions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) throw new Error('Erro ao atualizar transação');
-      return response.json();
+      const updatedAt = new Date().toISOString();
+      const items = readLocalTransactions().map(item =>
+        item.id === id ? { ...item, ...updates, updatedAt: updatedAt as any } : item
+      );
+      writeLocalTransactions(items);
+      return items.find(item => item.id === id) as Transaction;
     },
     onSuccess: (updatedTransaction) => {
       const updated = readLocalTransactions().map(t => 

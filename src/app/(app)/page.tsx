@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
 import { exportToCSV } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function DashboardPage() {
   const router = useRouter();
