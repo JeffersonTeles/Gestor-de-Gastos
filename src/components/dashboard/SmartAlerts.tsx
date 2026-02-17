@@ -2,7 +2,7 @@
 
 import { useBudgets } from '@/hooks/useBudgets';
 import { formatCurrency, getTodayLocalDate, getCurrentMonthLocal } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Alert {
   id: string;
@@ -24,13 +24,28 @@ interface SmartAlertsProps {
 export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlertsProps) => {
   const { budgets } = useBudgets(userId);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const dismissedAlertsRef = useRef<Set<string>>(new Set());
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Carregar alertas dispensados do localStorage apenas uma vez
+  useEffect(() => {
+    const saved = localStorage.getItem('dismissedAlerts');
+    if (saved) {
+      try {
+        dismissedAlertsRef.current = new Set(JSON.parse(saved));
+      } catch (e) {
+        console.error('Erro ao carregar alertas dispensados:', e);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
 
   useEffect(() => {
-    if (!userId || !transactions.length) return;
+    if (!userId || !transactions.length || !isLoaded) return;
 
     const newAlerts: Alert[] = [];
     const currentMonth = getCurrentMonthLocal();
+    const dismissedAlerts = dismissedAlertsRef.current;
 
     // Calcular gastos por categoria no mês atual
     const categorySpending: Record<string, number> = {};
@@ -99,29 +114,15 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
     }
 
     setAlerts(newAlerts);
-  }, [userId, transactions, budgets, dismissedAlerts, onViewBudgets]);
+  }, [userId, transactions, budgets, onViewBudgets, isLoaded]);
 
   const handleDismiss = (id: string) => {
-    setDismissedAlerts((prev) => new Set([...prev, id]));
+    dismissedAlertsRef.current.add(id);
     setAlerts((prev) => prev.filter((alert) => alert.id !== id));
     
     // Salvar no localStorage
-    const dismissed = Array.from(dismissedAlerts);
-    dismissed.push(id);
-    localStorage.setItem('dismissedAlerts', JSON.stringify(dismissed));
+    localStorage.setItem('dismissedAlerts', JSON.stringify(Array.from(dismissedAlertsRef.current)));
   };
-
-  // Carregar alertas dispensados do localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('dismissedAlerts');
-    if (saved) {
-      try {
-        setDismissedAlerts(new Set(JSON.parse(saved)));
-      } catch (e) {
-        console.error('Erro ao carregar alertas dispensados:', e);
-      }
-    }
-  }, []);
 
   if (alerts.length === 0) return null;
 
