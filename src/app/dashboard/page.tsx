@@ -4,16 +4,9 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-const BarChart = dynamic(() => import('@/components/charts/BarChart').then(mod => ({ default: mod.BarChart })));
-const LineChart = dynamic(() => import('@/components/charts/LineChart').then(mod => ({ default: mod.LineChart })));
-const PieChart = dynamic(() => import('@/components/charts/PieChart').then(mod => ({ default: mod.PieChart })));
-const InsightsCard = dynamic(() => import('@/components/analytics/InsightsCard').then(mod => ({ default: mod.InsightsCard })));
-const PredictionsCard = dynamic(() => import('@/components/analytics/PredictionsCard').then(mod => ({ default: mod.PredictionsCard })));
 const ImportModal = dynamic(() => import('@/components/dashboard/ImportModal').then(mod => ({ default: mod.ImportModal })));
 const WeeklyReview = dynamic(() => import('@/components/dashboard/WeeklyReview').then(mod => ({ default: mod.WeeklyReview })));
-const WhatsAppIntegration = dynamic(() => import('@/components/integrations/WhatsAppIntegration').then(mod => ({ default: mod.WhatsAppIntegration })));
 const SmartAlerts = dynamic(() => import('@/components/dashboard/SmartAlerts').then(mod => ({ default: mod.SmartAlerts })));
-const QuickAddFAB = dynamic(() => import('@/components/mobile/QuickAddFAB').then(mod => ({ default: mod.QuickAddFAB })));
 
 // Componentes críticos carregados normalmente
 import { QuickActions } from '@/components/dashboard/QuickActions';

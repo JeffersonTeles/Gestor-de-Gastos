@@ -1,18 +1,21 @@
 'use client';
 
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { QueryProvider } from '@/providers/QueryProvider';
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
+import { createQueryClient } from '@/lib/queryClient';
 
 export function ClientProviders({ children }: { children: ReactNode }) {
+  const queryClient = useMemo(() => createQueryClient(), []);
+  
   return (
-    <QueryProvider>
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
           {children}
         </ToastProvider>
       </ThemeProvider>
-    </QueryProvider>
+    </QueryClientProvider>
   );
 }

@@ -21,21 +21,34 @@ export const mockAuth = {
     // Simular delay de requisição
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (email === DEMO_USER.email && password === DEMO_USER.password) {
-      // Simular usuário logado
-      const user: User = { id: DEMO_USER.id, email: DEMO_USER.email };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_user', JSON.stringify(user));
-      }
-      return { user, error: null };
+    // Validação básica
+    if (!email || !password) {
+      return {
+        user: null,
+        error: {
+          message: 'Email e senha são obrigatórios',
+        },
+      };
     }
 
-    return {
-      user: null,
-      error: {
-        message: `Credenciais inválidas. Use: ${DEMO_USER.email} / ${DEMO_USER.password}`,
-      },
-    };
+    if (password.length < 6) {
+      return {
+        user: null,
+        error: {
+          message: 'A senha deve ter pelo menos 6 caracteres',
+        },
+      };
+    }
+
+    // Aceitar qualquer email válido (modo offline/demo)
+    const userId = email === DEMO_USER.email ? DEMO_USER.id : `user-${btoa(email).slice(0, 10)}`;
+    const user: User = { id: userId, email };
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_user', JSON.stringify(user));
+    }
+    
+    return { user, error: null };
   },
 
   signUp: async (email: string, _password: string): Promise<{ user: User | null; error: AuthError | null }> => {
