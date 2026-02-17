@@ -54,7 +54,6 @@ export const MoneyInput = ({
         <input
           type="text"
           inputMode="decimal"
-          pattern="[0-9]*"
           value={value}
           onChange={handleChange}
           onFocus={() => setIsFocused(true)}
