@@ -1,6 +1,7 @@
 'use client';
 
 import { Loan } from '@/types/index';
+import { getTodayLocalDate } from '@/lib/utils';
 import { useState } from 'react';
 
 interface PaymentModalProps {
@@ -19,9 +20,7 @@ export const PaymentModal = ({
   loading,
 }: PaymentModalProps) => {
   const [amount, setAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [paymentDate, setPaymentDate] = useState(getTodayLocalDate());
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
 
@@ -54,7 +53,7 @@ export const PaymentModal = ({
 
       // Limpar formulário
       setAmount('');
-      setPaymentDate(new Date().toISOString().split('T')[0]);
+      setPaymentDate(getTodayLocalDate());
       setNotes('');
       onClose();
     } catch (err: any) {

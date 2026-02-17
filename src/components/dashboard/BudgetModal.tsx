@@ -2,6 +2,7 @@
 
 import { Budget } from '@/hooks/useBudgets';
 import { Category } from '@/hooks/useCategories';
+import { getCurrentMonthLocal } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface BudgetModalProps {
@@ -25,9 +26,7 @@ export const BudgetModal = ({
 }: BudgetModalProps) => {
   const [category, setCategory] = useState('');
   const [limit, setLimit] = useState('');
-  const [month, setMonth] = useState(
-    new Date().toISOString().slice(0, 7) // YYYY-MM
-  );
+  const [month, setMonth] = useState(getCurrentMonthLocal());
   const [error, setError] = useState('');
 
   // Filtrar apenas categorias de despesa
@@ -41,7 +40,7 @@ export const BudgetModal = ({
     } else if (mode === 'create') {
       setCategory('');
       setLimit('');
-      setMonth(new Date().toISOString().slice(0, 7));
+      setMonth(getCurrentMonthLocal());
     }
   }, [mode, budget, isOpen]);
 
@@ -70,7 +69,7 @@ export const BudgetModal = ({
       if (mode === 'create') {
         setCategory('');
         setLimit('');
-        setMonth(new Date().toISOString().slice(0, 7));
+        setMonth(getCurrentMonthLocal());
       }
       
       onClose();

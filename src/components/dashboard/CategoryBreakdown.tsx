@@ -1,5 +1,6 @@
 'use client';
 
+import { getCurrentMonthLocal } from '@/lib/utils';
 import { useMemo } from 'react';
 
 interface CategoryBreakdownProps {
@@ -14,7 +15,7 @@ export const CategoryBreakdown = ({
   currentMonth = true
 }: CategoryBreakdownProps) => {
   const chartData = useMemo(() => {
-    const currentMonthStr = new Date().toISOString().slice(0, 7);
+    const currentMonthStr = getCurrentMonthLocal();
     
     const filtered = transactions.filter((tx: any) => {
       if (tx.type !== type) return false;

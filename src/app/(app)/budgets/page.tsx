@@ -5,6 +5,7 @@ import { BudgetModal } from '@/components/dashboard/BudgetModal';
 import { Topbar } from '@/components/layout/Topbar';
 import { useAuth } from '@/hooks/useAuth';
 import { Budget, useBudgets } from '@/hooks/useBudgets';
+import { getCurrentMonthLocal } from '@/lib/utils';
 import { useState } from 'react';
 
 export default function BudgetsPage() {
@@ -14,9 +15,7 @@ export default function BudgetsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toISOString().slice(0, 7)
-  );
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthLocal());
 
   const handleAddBudget = async (data: Partial<Budget>) => {
     setIsSaving(true);

@@ -3,6 +3,7 @@
  */
 
 import { Category, Transaction } from '../types';
+import { getTodayLocalDate } from '../lib/utils';
 
 // Sanitização de strings para prevenir XSS
 export const sanitizeString = (input: string): string => {
@@ -129,7 +130,7 @@ export const sanitizeTransaction = (
     value: transaction.value ? Math.abs(Number(transaction.value)) : 0,
     category: transaction.category || Category.Others,
     type: transaction.type || 'expense',
-    date: transaction.date || new Date().toISOString().split('T')[0],
+    date: transaction.date || getTodayLocalDate(),
   };
 };
 

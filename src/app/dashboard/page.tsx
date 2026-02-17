@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getTodayLocalDate } from '@/lib/utils';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -415,7 +415,7 @@ export default function DashboardPage() {
                       />
                       <ExportButton
                         data={filteredTransactions}
-                        filename={`transacoes-${new Date().toISOString().split('T')[0]}`}
+                        filename={`transacoes-${getTodayLocalDate()}`}
                         type="csv"
                       />
                     </div>

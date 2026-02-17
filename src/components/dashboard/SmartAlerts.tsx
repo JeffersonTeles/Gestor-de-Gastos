@@ -1,7 +1,7 @@
 'use client';
 
 import { useBudgets } from '@/hooks/useBudgets';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getTodayLocalDate, getCurrentMonthLocal } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface Alert {
@@ -30,7 +30,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
     if (!userId || !transactions.length) return;
 
     const newAlerts: Alert[] = [];
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const currentMonth = getCurrentMonthLocal();
 
     // Calcular gastos por categoria no mês atual
     const categorySpending: Record<string, number> = {};
@@ -83,7 +83,7 @@ export const SmartAlerts = ({ userId, transactions, onViewBudgets }: SmartAlerts
 
     if (last30Days.length >= 5) {
       const avgDaily = last30Days.reduce((sum: number, tx: any) => sum + Number(tx.amount), 0) / 30;
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayLocalDate();
       const todaySpending = transactions
         .filter((tx: any) => tx.date === today && tx.type === 'expense')
         .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);

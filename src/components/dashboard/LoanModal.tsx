@@ -1,6 +1,7 @@
 'use client';
 
 import { Loan } from '@/types/index';
+import { getTodayLocalDate } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface LoanModalProps {
@@ -24,9 +25,7 @@ export const LoanModal = ({
   const [amount, setAmount] = useState('');
   const [person, setPerson] = useState('');
   const [description, setDescription] = useState('');
-  const [loanDate, setLoanDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [loanDate, setLoanDate] = useState(getTodayLocalDate());
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -46,7 +45,7 @@ export const LoanModal = ({
       setAmount('');
       setPerson('');
       setDescription('');
-      setLoanDate(new Date().toISOString().split('T')[0]);
+      setLoanDate(getTodayLocalDate());
       setDueDate('');
       setNotes('');
     }
@@ -84,7 +83,7 @@ export const LoanModal = ({
         setAmount('');
         setPerson('');
         setDescription('');
-        setLoanDate(new Date().toISOString().split('T')[0]);
+        setLoanDate(getTodayLocalDate());
         setDueDate('');
         setNotes('');
       }

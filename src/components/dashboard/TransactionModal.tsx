@@ -2,6 +2,7 @@
 
 import { MoneyInput } from '@/components/ui/MoneyInput';
 import { useCategories, type Category } from '@/hooks/useCategories';
+import { getTodayLocalDate } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface TransactionData {
@@ -41,7 +42,7 @@ export const TransactionModal = ({
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(
-    new Date().toISOString().split('T')[0]
+    getTodayLocalDate()
   );
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -96,7 +97,7 @@ export const TransactionModal = ({
       setAmount('');
       setCategory('');
       setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(getTodayLocalDate());
       setTags([]);
       setNotes('');
     }
@@ -151,7 +152,7 @@ export const TransactionModal = ({
         setAmount('');
         setCategory('');
         setDescription('');
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(getTodayLocalDate());
         setTags([]);
         setTagInput('');
         setNotes('');

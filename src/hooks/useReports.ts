@@ -1,6 +1,7 @@
 'use client';
 
 import { Report } from '@/types/features';
+import { getTodayLocalDate } from '@/lib/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -69,7 +70,7 @@ export function useReports(userId?: string) {
     const pdf = new jsPDF();
     const image = canvas.toDataURL('image/png');
     pdf.addImage(image, 'PNG', 10, 10, 190, 280);
-    pdf.save(`relatorio-${report.type}-${new Date().toISOString().split('T')[0]}.pdf`);
+    pdf.save(`relatorio-${report.type}-${getTodayLocalDate()}.pdf`);
   };
 
   const exportCSV = (report: Report) => {
@@ -90,7 +91,7 @@ export function useReports(userId?: string) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `relatorio-${report.type}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `relatorio-${report.type}-${getTodayLocalDate()}.csv`;
     a.click();
   };
 

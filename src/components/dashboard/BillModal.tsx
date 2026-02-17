@@ -2,6 +2,7 @@
 
 import { useCategories, type Category } from '@/hooks/useCategories';
 import { Bill, BillPayload } from '@/types/index';
+import { getTodayLocalDate } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 interface BillModalProps {
@@ -26,7 +27,7 @@ export const BillModal = ({
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(getTodayLocalDate());
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'open' | 'paid' | 'canceled'>('open');
   const [error, setError] = useState('');
@@ -55,7 +56,7 @@ export const BillModal = ({
       setAmount('');
       setCategory('');
       setDescription('');
-      setDueDate(new Date().toISOString().split('T')[0]);
+      setDueDate(getTodayLocalDate());
       setNotes('');
       setStatus('open');
       setRepeatEnabled(false);
@@ -107,7 +108,7 @@ export const BillModal = ({
         setAmount('');
         setCategory('');
         setDescription('');
-        setDueDate(new Date().toISOString().split('T')[0]);
+        setDueDate(getTodayLocalDate());
         setNotes('');
         setStatus('open');
         setRepeatEnabled(false);
