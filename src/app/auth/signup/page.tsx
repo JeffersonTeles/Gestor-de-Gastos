@@ -1,10 +1,9 @@
 'use client';
 
 import { mockAuth } from '@/lib/mockAuth';
-import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,11 +12,6 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [supabase, setSupabase] = useState<any>(null);
-
-  useEffect(() => {
-    setSupabase(createClient());
-  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,26 +19,13 @@ export default function SignupPage() {
     setError('');
 
     try {
-      if (!supabase) {
-        setError('Supabase não configurado');
+      // Usar mock auth diretamente (modo offline)
+      const authResult = await mockAuth.signUp(email, password);
+      
+      if (authResult.error) {
+        setError(authResult.error.message);
         setLoading(false);
         return;
-      }
-
-      // Tentar Supabase real primeiro
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (signUpError) {
-        // Se Supabase falhar, tenta mock auth como fallback
-        const authResult = await mockAuth.signUp(email, password);
-        if (authResult.error) {
-          setError(authResult.error.message);
-          setLoading(false);
-          return;
-        }
       }
 
       // Cadastro bem-sucedido
