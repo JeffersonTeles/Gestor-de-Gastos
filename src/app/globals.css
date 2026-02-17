@@ -631,3 +631,319 @@ textarea:focus-visible {
 .animate-slide-up {
   animation: slideUp 0.3s ease-out;
 }
+
+/* ========================================
+   🎨 MELHORIAS UX/UI PROFISSIONAIS
+   ======================================== */
+
+/* ===== CUSTOM SCROLLBAR ===== */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-300) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+  background-clip: content-box;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: var(--neutral-700) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--neutral-700);
+  background-clip: content-box;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-600);
+  background-clip: content-box;
+}
+
+/* Aplicar scrollbar em toda app */
+.app-content,
+.app-sidebar,
+.modal-body {
+  @apply custom-scrollbar;
+}
+
+/* ===== CONTRASTE E TIPOGRAFIA MELHORADOS ===== */
+
+/* Títulos mais pesados e legíveis */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--neutral-900);
+}
+
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6 {
+  color: var(--neutral-50);
+}
+
+/* Texto corpo com melhor contraste */
+.text-body {
+  color: var(--neutral-800);
+  font-weight: 500;
+}
+
+.dark .text-body {
+  color: var(--neutral-200);
+}
+
+/* Labels mais visíveis */
+label {
+  font-weight: 600;
+  color: var(--neutral-700);
+  font-size: 0.875rem;
+}
+
+.dark label {
+  color: var(--neutral-300);
+}
+
+/* Cards com mais profundidade */
+.card {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .card {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Botão primário com melhor feedback visual */
+.btn-primary {
+  font-weight: 600;
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(37, 99, 235, 0.1) inset;
+}
+
+.btn-primary:hover {
+  box-shadow: 
+    0 4px 8px rgba(37, 99, 235, 0.2),
+    0 0 0 1px rgba(37, 99, 235, 0.2) inset;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1) inset;
+}
+
+/* Metric cards com mais destaque */
+.metric-card-value {
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em;
+}
+
+.metric-card-label {
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem !important;
+  color: var(--neutral-500);
+}
+
+/* Inputs com melhor contraste e feedback */
+input,
+select,
+textarea {
+  border-width: 2px;
+  border-color: var(--neutral-200);
+  font-weight: 500;
+  color: var(--neutral-900);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary-600);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  border-color: var(--neutral-700);
+  color: var(--neutral-100);
+  background: var(--neutral-800);
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* ===== PAGE TRANSITIONS ===== */
+
+/* Fade-in suave ao carregar página */
+.page-transition {
+  animation: pageLoad 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pageLoad {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Transições entre rotas */
+.app-content {
+  animation: contentFadeIn 0.3s ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Cards aparecem em sequência (stagger animation) */
+.metric-card {
+  animation: cardSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.metric-card:nth-child(1) { animation-delay: 0.05s; }
+.metric-card:nth-child(2) { animation-delay: 0.1s; }
+.metric-card:nth-child(3) { animation-delay: 0.15s; }
+.metric-card:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes cardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover states mais fluidos */
+.card-hover,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll suave em todo o site */
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  scroll-padding-top: 100px;
+}
+
+/* ===== SKELETON IMPROVEMENTS ===== */
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--neutral-100) 8%,
+    var(--neutral-50) 18%,
+    var(--neutral-100) 33%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--neutral-800) 8%,
+    var(--neutral-700) 18%,
+    var(--neutral-800) 33%
+  );
+  background-size: 200% 100%;
+}
+
+/* Pulse suave para loading states */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ===== RESPONSIVIDADE E ACESSIBILIDADE ===== */
+
+/* Touch targets maiores para mobile (min 44x44px) */
+@media (max-width: 768px) {
+  button,
+  a.btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Reduzir animações se usuário preferir (acessibilidade) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== FIM DAS MELHORIAS UX/UI ===== */

@@ -421,240 +421,170 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Filtros Rápidos */}
-          <div className="mb-6 sm:mb-8">
-            <QuickFilters 
-              onPeriodChange={setSelectedPeriod}
-              onTypeChange={setSelectedType}
-            />
-          </div>
+          {/* 🔥 LAYOUT 2 COLUNAS DESKTOP */}
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            {/* ========== COLUNA ESQUERDA: Análises e Gráficos (60%) ========== */}
+            <div className="xl:col-span-7 space-y-6">
+              
+              {/* Filtros Rápidos */}
+              <QuickFilters 
+                onPeriodChange={setSelectedPeriod}
+                onTypeChange={setSelectedType}
+              />
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap gap-3 mb-8">
-            <button
-              onClick={() => setIsWeeklyReviewOpen(true)}
-              className="btn-secondary text-sm"
-            >
-              📅 Revisão Semanal
-            </button>
-            <button
-              onClick={() => setIsImportOpen(true)}
-              className="btn-secondary text-sm"
-            >
-              📥 Importar Dados
-            </button>
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="btn-secondary text-sm"
-            >
-              🔍 Buscar
-            </button>
-          </div>
-
-          {/* Alertas inteligentes */}
-          <SmartAlerts
-            userId={user.id}
-            transactions={transactions}
-            onViewBudgets={() => router.push('/budgets')}
-          />
-
-          {/* Insights Automáticos */}
-          {insights.length > 0 && (
-            <div className="mt-8">
-              <InsightsCard insights={insights.slice(0, 4)} />
-            </div>
-          )}
-
-          {/* Gráficos Interativos */}
-          {transactions.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">📊 Análise Visual</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Gráfico de Pizza - Despesas por Categoria */}
-                <div className="card">
-                  <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                    Despesas por Categoria
-                  </h4>
-                  {chartData.pieData.length > 0 ? (
-                    <PieChart data={chartData.pieData} />
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
-                      Sem despesas para exibir
-                    </div>
-                  )}
-                </div>
-
-                {/* Gráfico de Linha - Tendência */}
-                <div className="card lg:col-span-2">
-                  <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                    Tendência de Gastos
-                  </h4>
-                  {chartData.lineData.length > 0 ? (
-                    <LineChart data={chartData.lineData} />
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
-                      Sem dados para exibir
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Gráfico de Barras - Receitas vs Despesas */}
-              <div className="card mt-6">
-                <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                  Receitas vs Despesas
-                </h4>
-                {chartData.barData.length > 0 ? (
-                  <BarChart data={chartData.barData} />
-                ) : (
-                  <div className="flex items-center justify-center h-[400px] text-sm text-neutral-500">
-                    Sem dados para comparação
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Previsões */}
-          {predictions.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">🔮 Previsões Financeiras</h3>
-              <PredictionsCard predictions={predictions} />
-            </div>
-          )}
-
-          {/* Integração WhatsApp */}
-          <div className="mt-8">
-            <WhatsAppIntegration />
-          </div>
-
-          {/* Transações Recentes */}
-          <div className="card bg-white mt-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Transações Recentes</h3>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Últimas movimentações registradas</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <AdvancedFilters
-                  onFilter={(filters) => {
-                    // Aplicar filtros aqui
-                    console.log('Filtros aplicados:', filters);
-                  }}
-                  categories={['Alimentação', 'Transporte', 'Saúde', 'Lazer']}
-                  tags={allTags}
-                />
-                <ExportButton
-                  data={filteredTransactions}
-                  filename={`transacoes-${new Date().toISOString().split('T')[0]}`}
-                  type="csv"
-                />
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="btn-primary text-sm"
+                  onClick={() => setIsWeeklyReviewOpen(true)}
+                  className="btn-secondary text-sm"
                 >
-                  + Nova Transação
+                  📅 Revisão Semanal
+                </button>
+                <button
+                  onClick={() => setIsImportOpen(true)}
+                  className="btn-secondary text-sm"
+                >
+                  📥 Importar Dados
+                </button>
+                <button
+                  onClick={() => setIsSearchOpen(true)}
+                  className="btn-secondary text-sm"
+                >
+                  🔍 Buscar
                 </button>
               </div>
+
+              {/* Alertas inteligentes */}
+              <SmartAlerts
+                userId={user.id}
+                transactions={transactions}
+                onViewBudgets={() => router.push('/budgets')}
+              />
+
+              {/* Insights Automáticos */}
+              {insights.length > 0 && (
+                <InsightsCard insights={insights.slice(0, 4)} />
+              )}
+
+              {/* Gráficos Interativos */}
+              {transactions.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">📊 Análise Visual</h3>
+                  
+                  {/* Gráfico de Linha - Full Width */}
+                  <div className="card">
+                    <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
+                      Tendência de Gastos
+                    </h4>
+                    {chartData.lineData.length > 0 ? (
+                      <LineChart data={chartData.lineData} />
+                    ) : (
+                      <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
+                        Sem dados para exibir
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Gráfico de Pizza */}
+                    <div className="card">
+                      <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
+                        Despesas por Categoria
+                      </h4>
+                      {chartData.pieData.length > 0 ? (
+                        <PieChart data={chartData.pieData} />
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
+                          Sem despesas para exibir
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Gráfico de Barras */}
+                    <div className="card">
+                      <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
+                        Receitas vs Despesas
+                      </h4>
+                      {chartData.barData.length > 0 ? (
+                        <BarChart data={chartData.barData} />
+                      ) : (
+                        <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
+                          Sem dados para comparação
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Previsões */}
+              {predictions.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">🔮 Previsões Financeiras</h3>
+                  <PredictionsCard predictions={predictions} />
+                </div>
+              )}
+
+              {/* Integração WhatsApp */}
+              <WhatsAppIntegration />
             </div>
 
-            {transactions.length === 0 ? (
-              <EmptyTransactions onAddTransaction={() => setIsModalOpen(true)} />
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto -mx-6">
-                  <table className="w-full">
-                    <thead className="bg-neutral-50 dark:bg-neutral-700/50 border-y border-neutral-200 dark:border-neutral-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                      Descrição
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                      Categoria
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                      Tipo
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                      Valor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                      Data
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
-                  {filteredTransactions.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12">
-                        <EmptyTransactions onAddTransaction={() => setIsModalOpen(true)} />
-                      </td>
-                    </tr>
+            {/* ========== COLUNA DIREITA: Transações Recentes (40%) ========== */}
+            <div className="xl:col-span-5">
+              <div className="xl:sticky xl:top-24 space-y-6">
+                {/* Lista de Transações */}
+                <div className="card bg-white">
+                {/* Lista de Transações */}
+                <div className="card bg-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Transações Recentes</h3>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+                        {filteredTransactions.length} movimentações
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <AdvancedFilters
+                        onFilter={handleFilter}
+                        categories={['Alimentação', 'Transporte', 'Saúde', 'Lazer']}
+                        tags={allTags}
+                      />
+                      <ExportButton
+                        data={filteredTransactions}
+                        filename={`transacoes-${new Date().toISOString().split('T')[0]}`}
+                        type="csv"
+                      />
+                    </div>
+                  </div>
+
+                  {transactions.length === 0 ? (
+                    <EmptyTransactions onAddTransaction={() => setIsModalOpen(true)} />
                   ) : (
-                    filteredTransactions.slice(0, 10).map((tx: any) => (
-                      <tr key={tx.id} className="hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <p className="text-sm font-medium text-neutral-900 dark:text-white">{tx.description}</p>
-                          {tx.tags && tx.tags.length > 0 && (
-                            <div className="flex gap-1 mt-1">
-                              {tx.tags.slice(0, 2).map((tag: string) => (
-                                <span
-                                  key={tag}
-                                  className="text-xs px-2 py-0.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-md"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">{tx.category}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${
-                              tx.type === 'income'
-                                ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400'
-                                : 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400'
-                            }`}
-                          >
-                            {tx.type === 'income' ? 'Receita' : 'Despesa'}
-                          </span>
-                        </td>
-                        <td className={`px-6 py-4 text-right text-sm font-semibold ${
-                          tx.type === 'income' ? 'text-success-600' : 'text-danger-600'
-                        }`}>
-                          {tx.type === 'income' ? '+' : '-'} {formatCurrency(Number(tx.amount))}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400">
-                          {new Date(tx.date).toLocaleDateString('pt-BR')}
-                        </td>
-                      </tr>
-                    ))
+                    <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar pr-2">
+                      {filteredTransactions.length === 0 ? (
+                        <EmptyTransactions onAddTransaction={() => setIsModalOpen(true)} />
+                      ) : (
+                        filteredTransactions.slice(0, 20).map((tx: any) => (
+                          <TransactionCard
+                            key={tx.id}
+                            transaction={tx}
+                          />
+                        ))
+                      )}
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
-              {filteredTransactions.slice(0, 10).map((tx: any) => (
-                <TransactionCard
-                  key={tx.id}
-                  transaction={tx}
-                />
-              ))}
-            </div>
-            </>
-            )}
-
-            {filteredTransactions.length > 10 && (
-              <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700 text-center">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  Mostrando 10 de {filteredTransactions.length} transações
-                </p>
+                  {filteredTransactions.length > 20 && (
+                    <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-700 text-center">
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                        Mostrando 20 de {filteredTransactions.length} transações
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
