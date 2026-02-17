@@ -27,8 +27,6 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useInsights } from '@/hooks/useInsights';
-import { usePredictions } from '@/hooks/usePredictions';
 import { useTransactions } from '@/hooks/useTransactions';
 import { formatCurrency } from '@/lib/utils';
 
@@ -53,68 +51,7 @@ export default function DashboardPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
 
-  // Insights e Previsões
-  const insights = useInsights(transactions, stats.income);
-  const predictions = usePredictions(transactions);
-
-  // Preparar dados para gráficos
-  const chartData = useMemo(() => {
-    // Paleta de cores para gráficos
-    const colors = [
-      '#3B82F6', // blue-500
-      '#10B981', // green-500
-      '#F59E0B', // yellow-500
-      '#EF4444', // red-500
-      '#8B5CF6', // purple-500
-      '#EC4899', // pink-500
-      '#14B8A6', // teal-500
-      '#F97316', // orange-500
-    ];
-
-    // Dados para PieChart (despesas por categoria)
-    const categoryTotals: Record<string, number> = {};
-    transactions
-      .filter((tx: any) => tx.type === 'expense')
-      .forEach((tx: any) => {
-        const category = tx.category || 'Outros';
-        categoryTotals[category] = (categoryTotals[category] || 0) + Number(tx.amount);
-      });
-
-    const pieData = Object.entries(categoryTotals).map(([name, value], index) => ({
-      name,
-      value,
-      color: colors[index % colors.length]
-    }));
-
-    // Dados para LineChart (tendência mensal)
-    const monthlyData: Record<string, number> = {};
-    transactions.forEach((tx: any) => {
-      const month = new Date(tx.date).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-      if (tx.type === 'expense') {
-        monthlyData[month] = (monthlyData[month] || 0) + Number(tx.amount);
-      }
-    });
-
-    const lineData = Object.entries(monthlyData)
-      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([label, value]) => ({ label, value }));
-
-    // Dados para BarChart (receitas vs despesas por mês)
-    const monthlyComparison: Record<string, { income: number; expense: number }> = {};
-    transactions.forEach((tx: any) => {
-      const month = new Date(tx.date).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-      if (!monthlyComparison[month]) {
-        monthlyComparison[month] = { income: 0, expense: 0 };
-      }
-      monthlyComparison[month][tx.type === 'income' ? 'income' : 'expense'] += Number(tx.amount);
-    });
-
-    const barData = Object.entries(monthlyComparison)
-      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([label, values]) => ({ label, ...values }));
-
-    return { pieData, lineData, barData };
-  }, [transactions]);
+  // Gráficos removidos - componentes deletados durante limpeza
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -455,72 +392,7 @@ export default function DashboardPage() {
                 onViewBudgets={() => router.push('/budgets')}
               />
 
-              {/* Insights Automáticos */}
-              {insights.length > 0 && (
-                <InsightsCard insights={insights.slice(0, 4)} />
-              )}
-
-              {/* Gráficos Interativos */}
-              {transactions.length > 0 && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">📊 Análise Visual</h3>
-                  
-                  {/* Gráfico de Linha - Full Width */}
-                  <div className="card">
-                    <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                      Tendência de Gastos
-                    </h4>
-                    {chartData.lineData.length > 0 ? (
-                      <LineChart data={chartData.lineData} />
-                    ) : (
-                      <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
-                        Sem dados para exibir
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Gráfico de Pizza */}
-                    <div className="card">
-                      <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                        Despesas por Categoria
-                      </h4>
-                      {chartData.pieData.length > 0 ? (
-                        <PieChart data={chartData.pieData} />
-                      ) : (
-                        <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
-                          Sem despesas para exibir
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Gráfico de Barras */}
-                    <div className="card">
-                      <h4 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">
-                        Receitas vs Despesas
-                      </h4>
-                      {chartData.barData.length > 0 ? (
-                        <BarChart data={chartData.barData} />
-                      ) : (
-                        <div className="flex items-center justify-center h-[300px] text-sm text-neutral-500">
-                          Sem dados para comparação
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Previsões */}
-              {predictions.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-4">🔮 Previsões Financeiras</h3>
-                  <PredictionsCard predictions={predictions} />
-                </div>
-              )}
-
-              {/* Integração WhatsApp */}
-              <WhatsAppIntegration />
+              {/* Análises e gráficos futuros aqui */}
             </div>
 
             {/* ========== COLUNA DIREITA: Transações Recentes (40%) ========== */}
@@ -626,17 +498,7 @@ export default function DashboardPage() {
         transactions={transactions}
       />
 
-      {/* Botão flutuante para adicionar transações rapidamente no mobile */}
-      <QuickAddFAB
-        onAddIncome={() => {
-          setModalType('income');
-          setIsModalOpen(true);
-        }}
-        onAddExpense={() => {
-          setModalType('expense');
-          setIsModalOpen(true);
-        }}
-      />
+      {/* Mobile FAB removido - usar botões na header */}
     </div>
   );
 }
