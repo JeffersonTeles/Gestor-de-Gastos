@@ -11,11 +11,9 @@ import { TrendChart } from '@/components/dashboard/TrendChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useTransactions } from '@/hooks/useTransactions';
 import { exportToCSV } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { user } = useAuth();
   const { transactions, addTransaction, deleteTransaction, updateTransaction, loading } =
     useTransactions(user?.id);
