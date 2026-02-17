@@ -535,8 +535,6 @@ export default function DashboardPage() {
               <div className="xl:sticky xl:top-24 space-y-6">
                 {/* Lista de Transações */}
                 <div className="card bg-white">
-                {/* Lista de Transações */}
-                <div className="card bg-white">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <div>
                       <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Transações Recentes</h3>
