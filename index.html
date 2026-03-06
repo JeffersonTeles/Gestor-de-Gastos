@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FluxoForte | Gestão Financeira</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-shape bg-shape-a" aria-hidden="true"></div>
+  <div class="bg-shape bg-shape-b" aria-hidden="true"></div>
+
+  <header class="hero reveal">
+    <div>
+      <p class="eyebrow">Gestão Financeira Inteligente</p>
+      <h1>FluxoForte</h1>
+      <p class="hero-subtitle">Visualize seu dinheiro, organize seus lançamentos e acompanhe metas mensais com clareza.</p>
+      <button id="viewModeBtn" type="button" class="ghost view-mode-btn">Modo: Simples</button>
+    </div>
+    <div class="hero-badge">
+      <p>Saúde financeira</p>
+      <strong id="healthBadge">-</strong>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card wide reveal" aria-label="Conexão e sincronização">
+      <div class="card-header">
+        <h2>Conexão com Supabase</h2>
+        <div class="actions-row">
+          <span id="syncModeBadge" class="mode-badge">Modo local</span>
+          <button id="openAuthModalBtn" type="button" class="ghost">Conta e Sincronizacao</button>
+        </div>
+      </div>
+      <p id="integrationText" class="integration-text">Faça login para sincronizar seus dados entre dispositivos. Sem login, seus dados continuam salvos localmente neste navegador.</p>
+      <div class="auth-status">
+        <p><strong>Usuário:</strong> <span id="authUser">não autenticado</span></p>
+        <p><strong>Sincronização:</strong> <span id="syncStatusText" role="status" aria-live="polite">Somente armazenamento local.</span></p>
+        <p><strong>Telemetria:</strong> <span id="telemetryStatusText" role="status" aria-live="polite">Desativada (sem login).</span></p>
+      </div>
+      <small id="authCompactText" class="helper-text">Os campos de login ficam na janela "Conta e Sincronizacao" para manter a tela principal limpa.</small>
+      <small id="authMessage" class="helper-text" role="status" aria-live="polite">Configure o arquivo `.env` para ativar a nuvem.</small>
+    </section>
+
+    <section id="quickstartSection" class="card wide reveal" aria-label="Guia inicial">
+      <div class="card-header">
+        <h2>Comece em 3 Passos</h2>
+      </div>
+      <ol class="quickstart-list">
+        <li>Adicione seus primeiros lancamentos em <strong>Novo Lancamento</strong>.</li>
+        <li>Defina limites em <strong>Metas do Mes</strong> para ativar alertas automaticos.</li>
+        <li>Use <strong>Importacao Multi-Banco</strong> para consolidar dados de todos os bancos.</li>
+      </ol>
+      <div class="guide-panel">
+        <button id="startGuideBtn" type="button">Iniciar modo assistido</button>
+        <button id="prevGuideBtn" type="button" class="ghost" disabled>Anterior</button>
+        <button id="nextGuideBtn" type="button" class="ghost" disabled>Proximo</button>
+        <button id="finishGuideBtn" type="button" class="ghost" disabled>Concluir</button>
+      </div>
+      <small id="guideStatusText" class="helper-text" role="status" aria-live="polite">Modo assistido pronto para uso.</small>
+      <small class="helper-text">Se preferir uma tela mais simples, mantenha o modo simples ativo no topo.</small>
+    </section>
+
+    <section id="sectionNewTransaction" class="card reveal" aria-label="Adicionar transação">
+      <h2>Novo Lançamento</h2>
+      <p id="formModeText" class="helper-text">Preencha os dados para adicionar um lançamento.</p>
+      <div class="transaction-type-hints" aria-hidden="true">
+        <span class="type-pill income">Receita = Verde</span>
+        <span class="type-pill expense">Despesa = Vermelho</span>
+      </div>
+      <form id="transactionForm" class="form-grid">
+        <label>
+          Descrição
+          <input id="description" name="description" required maxlength="80" placeholder="Ex: Mercado, Salário" />
+        </label>
+        <label>
+          Valor (R$)
+          <input id="amount" name="amount" type="number" step="0.01" min="0.01" required />
+        </label>
+        <label>
+          Data
+          <input id="date" name="date" type="date" required />
+        </label>
+        <label>
+          Tipo
+          <select id="type" name="type" required>
+            <option value="income">Receita</option>
+            <option value="expense">Despesa</option>
+          </select>
+        </label>
+        <label>
+          Categoria
+          <select id="category" name="category" required>
+            <option>Moradia</option>
+          </select>
+        </label>
+        <div class="form-actions">
+          <button id="saveTransactionBtn" type="submit">Salvar Lançamento</button>
+          <button id="cancelEditBtn" type="button" class="ghost" disabled>Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card summary reveal" aria-label="Resumo financeiro">
+      <div class="card-header">
+        <h2>Resumo</h2>
+        <div class="summary-controls">
+          <select id="summaryPeriod">
+            <option value="month">Mensal</option>
+            <option value="year">Anual</option>
+          </select>
+          <input id="summaryMonth" type="month" />
+          <input id="summaryYear" type="number" min="2000" max="2100" step="1" class="is-hidden" />
+        </div>
+      </div>
+      <small id="summaryMonthText" class="helper-text">Periodo selecionado no resumo.</small>
+      <small id="summaryDiagnosticsText" class="helper-text">Sem dados do periodo selecionado.</small>
+      <small id="summaryYearComparisonText" class="helper-text is-hidden">Comparativo anual indisponivel neste periodo.</small>
+      <div class="kpis">
+        <article id="kpiBalanceCard">
+          <p>Saldo</p>
+          <strong id="balanceValue">R$ 0,00</strong>
+        </article>
+        <article id="kpiIncomeCard">
+          <p>Receitas</p>
+          <strong id="incomeValue">R$ 0,00</strong>
+        </article>
+        <article id="kpiExpenseCard">
+          <p>Despesas</p>
+          <strong id="expenseValue">R$ 0,00</strong>
+        </article>
+        <article id="kpiSavingsRateCard">
+          <p>Taxa de poupança</p>
+          <strong id="savingsRateValue">0%</strong>
+        </article>
+        <article id="kpiAdjustedBalanceCard">
+          <p>Saldo Real Ajustado</p>
+          <strong id="adjustedBalanceValue">R$ 0,00</strong>
+        </article>
+      </div>
+      <small id="currentBalanceInsightText" class="helper-text">Defina o saldo atual no banco para comparar com o saldo calculado pelo historico.</small>
+    </section>
+
+    <section id="emptyAnalyticsNotice" class="card wide reveal">
+      <h2>Dashboard Pronta para Iniciar</h2>
+      <p class="helper-text">Adicione sua primeira receita ou despesa para liberar graficos, previsoes e analises avancadas.</p>
+    </section>
+
+    <section id="sectionFinancialIntelligence" class="card reveal" aria-label="Inteligencia financeira" data-advanced="true">
+      <h2>Inteligencia Financeira</h2>
+      <div class="insight-grid">
+        <article>
+          <p>Score financeiro</p>
+          <strong id="financialScoreValue">0</strong>
+          <small id="financialScoreText">Adicione transacoes para calcular.</small>
+        </article>
+        <article>
+          <p>Previsao de saldo no fim do mes</p>
+          <strong id="forecastBalanceValue">R$ 0,00</strong>
+          <small id="forecastBalanceText">Sem dados suficientes.</small>
+        </article>
+      </div>
+      <div class="insight-list">
+        <p>Deteccao de anomalias</p>
+        <small id="anomalyText">Sem anomalias detectadas.</small>
+      </div>
+      <div class="insight-list">
+        <p>Recomendacao automatica</p>
+        <small id="recommendationText">Registre lancamentos para receber recomendacoes.</small>
+      </div>
+    </section>
+
+    <section id="sectionScenarioLab" class="card reveal" aria-label="Laboratorio de cenarios" data-advanced="true">
+      <h2>Laboratorio de Cenarios</h2>
+      <p class="helper-text">Simule ajustes de comportamento e veja o impacto financeiro projetado para os proximos 6 meses.</p>
+      <form id="scenarioForm" class="scenario-form">
+        <label>
+          Aumento de receita (%)
+          <input id="scenarioIncomeIncrease" type="number" min="0" step="0.5" value="5" />
+        </label>
+        <label>
+          Reducao de despesas (%)
+          <input id="scenarioExpenseReduction" type="number" min="0" step="0.5" value="8" />
+        </label>
+        <button id="runScenarioBtn" type="submit">Simular Estrategia</button>
+      </form>
+      <small id="scenarioResultText" class="helper-text">Use o simulador para comparar cenario atual vs cenario otimizado.</small>
+      <canvas id="scenarioChart" height="200"></canvas>
+    </section>
+
+    <section id="sectionFutureSummary" class="card reveal" aria-label="Resumo futuro" data-advanced="true">
+      <h2>Resumo Futuro de Economia</h2>
+      <p class="helper-text">Projeta quanto voce pode economizar ate a data-alvo usando sua media mensal de receitas e despesas fixas/variaveis.</p>
+      <form id="futurePlanningForm" class="future-form">
+        <label>
+          Data-alvo
+          <input id="futureTargetMonth" type="month" />
+        </label>
+        <label>
+          Meta de economia ate a data (R$)
+          <input id="futureGoalAmount" type="number" min="0" step="0.01" placeholder="Ex: 15000" />
+        </label>
+        <label>
+          Reducao nas despesas variaveis (%)
+          <input id="futureVariableReduction" type="number" min="0" max="100" step="1" value="0" />
+        </label>
+        <button type="submit">Atualizar Resumo Futuro</button>
+      </form>
+      <small id="futureSummaryText" class="helper-text">Adicione historico para gerar previsao.</small>
+      <small id="futureGoalInsightText" class="helper-text">Defina uma meta para calcular ritmo mensal e chance estimada.</small>
+      <canvas id="futureSavingsChart" height="190"></canvas>
+    </section>
+
+    <section class="card wide reveal" aria-label="Metodologia do modelo" data-advanced="true">
+      <div class="card-header">
+        <h2>Metodologia do Modelo</h2>
+      </div>
+      <div class="method-grid">
+        <article>
+          <h3>Score Financeiro (0-100)</h3>
+          <p>Composicao ponderada por taxa de poupanca, disciplina de orcamento e consistencia de registros mensais.</p>
+        </article>
+        <article>
+          <h3>Deteccao de Anomalias</h3>
+          <p>Classificacao estatistica de despesas acima da media mensal por desvio padrao, com explicacao textual.</p>
+        </article>
+        <article>
+          <h3>Projecao de Saldo</h3>
+          <p>Estimativa do saldo no fim do mes baseada em media diaria observada no periodo corrente.</p>
+        </article>
+        <article>
+          <h3>Laboratorio de Cenarios</h3>
+          <p>Simula variacoes de receita e despesa e projeta impacto acumulado em 6 meses para apoio decisorio.</p>
+        </article>
+      </div>
+      <small class="helper-text">Este bloco explica o racional do sistema para apresentacao de banca e discussao metodologica.</small>
+    </section>
+
+    <section id="sectionImport" class="card reveal" aria-label="Importacao multibanco" data-advanced="true">
+      <h2>Importacao Multi-Banco</h2>
+      <p class="helper-text">Importe extratos em JSON, CSV ou OFX e consolide bancos diferentes em um unico painel.</p>
+      <form id="importForm" class="import-form">
+        <label>
+          Banco/Origem
+          <input id="importSourceBank" type="text" maxlength="40" placeholder="Ex: Mercado Pago, Nubank, Itau" required />
+        </label>
+        <label>
+          Arquivo (JSON, CSV, OFX)
+          <input id="importFile" type="file" accept=".json,.csv,.ofx,.txt,.pdf" multiple />
+        </label>
+        <div id="importDropZone" class="import-drop-zone" tabindex="0" role="button" aria-label="Arraste e solte o arquivo de extrato aqui">
+          Arraste e solte um ou mais extratos aqui
+        </div>
+        <label>
+          Ou cole o conteudo bruto
+          <textarea id="importRawText" rows="5" placeholder="Cole aqui JSON, CSV ou OFX"></textarea>
+        </label>
+        <button type="submit">Importar Lancamentos</button>
+      </form>
+      <div class="actions-row">
+        <button id="undoLastImportBtn" type="button" class="ghost">Desfazer Ultima Importacao</button>
+        <button id="resendPendingSyncBtn" type="button" class="ghost">Reenviar Pendentes</button>
+      </div>
+      <div id="importBatchPreview" class="chart-legend"></div>
+      <div id="importReviewModal" class="import-review-modal is-hidden" aria-hidden="true">
+        <div id="importReviewPanel" class="import-review" role="dialog" aria-modal="true" aria-labelledby="importReviewTitle" aria-live="polite">
+          <div class="card-header">
+            <h3 id="importReviewTitle">Revisar Importacao</h3>
+            <button id="closeImportReviewBtn" type="button" class="ghost">Fechar</button>
+          </div>
+          <small id="importReviewSummary" class="helper-text">Sem itens para revisar.</small>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usar</th>
+                  <th>Data</th>
+                  <th>Descricao</th>
+                  <th>Confianca</th>
+                  <th>Tipo</th>
+                  <th>Categoria</th>
+                  <th>Valor</th>
+                  <th>Motivo</th>
+                </tr>
+              </thead>
+              <tbody id="importReviewTableBody"></tbody>
+            </table>
+          </div>
+          <div class="actions-row">
+            <button id="selectAllImportRowsBtn" type="button" class="ghost">Selecionar Todos</button>
+            <button id="clearAllImportRowsBtn" type="button" class="ghost">Desmarcar Todos</button>
+            <button id="applyAiSuggestionsBtn" type="button" class="ghost">Aplicar IA (tipo/categoria)</button>
+            <button id="confirmImportBtn" type="button">Confirmar Importacao</button>
+            <button id="cancelImportBtn" type="button" class="ghost">Cancelar</button>
+          </div>
+        </div>
+      </div>
+      <small id="importStatusText" class="helper-text" role="status" aria-live="polite">Nenhuma importacao realizada ainda.</small>
+      <div id="importAuditList" class="budget-list"></div>
+    </section>
+
+    <section class="card reveal" aria-label="Regras automaticas" data-advanced="true">
+      <h2>Regras Automaticas</h2>
+      <p class="helper-text">Classifique transacoes importadas automaticamente com base em palavras-chave.</p>
+      <form id="autoRuleForm" class="category-form">
+        <label>
+          Palavra-chave
+          <input id="autoRuleKeyword" type="text" maxlength="40" placeholder="Ex: uber, mercado, ifood" required />
+        </label>
+        <button id="addAutoRuleBtn" type="submit">Salvar regra</button>
+      </form>
+      <label>
+        Categoria alvo
+        <select id="autoRuleCategory"></select>
+      </label>
+      <div class="actions-row">
+        <button id="simulateRulesBtn" type="button" class="ghost">Simular regras nos dados atuais</button>
+      </div>
+      <small id="autoRulesStatusText" class="helper-text" role="status" aria-live="polite">Nenhuma simulacao executada ainda.</small>
+      <div id="autoRulesList" class="budget-list"></div>
+    </section>
+
+    <section class="card reveal" aria-label="Lancamentos recorrentes" data-advanced="true">
+      <h2>Lancamentos Recorrentes</h2>
+      <p class="helper-text">Cadastre despesas/receitas fixas e gere o mes atual com 1 clique.</p>
+      <form id="recurringForm" class="form-grid">
+        <label>
+          Descricao
+          <input id="recurringDescription" type="text" maxlength="80" required placeholder="Ex: Aluguel" />
+        </label>
+        <label>
+          Valor (R$)
+          <input id="recurringAmount" type="number" step="0.01" min="0.01" required />
+        </label>
+        <label>
+          Dia do mes
+          <input id="recurringDay" type="number" min="1" max="31" required />
+        </label>
+        <label>
+          Tipo
+          <select id="recurringType" required>
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+        </label>
+        <label>
+          Categoria
+          <select id="recurringCategory"></select>
+        </label>
+        <button id="saveRecurringBtn" type="submit">Salvar recorrente</button>
+      </form>
+      <div class="actions-row">
+        <button id="generateRecurringBtn" type="button" class="ghost">Gerar recorrentes do mes</button>
+      </div>
+      <small id="recurringStatusText" class="helper-text" role="status" aria-live="polite">Nenhum lancamento recorrente gerado ainda.</small>
+      <div id="recurringList" class="budget-list"></div>
+    </section>
+
+    <section id="sectionGoals" class="card reveal" aria-label="Metas financeiras">
+      <h2>Metas do Mês</h2>
+      <form id="goalsForm" class="goals-form">
+        <label>
+          Limite de despesas (R$)
+          <input id="expenseLimit" type="number" step="0.01" min="0" placeholder="Ex: 3000" />
+        </label>
+        <label>
+          Meta de economia (R$)
+          <input id="savingsGoal" type="number" step="0.01" min="0" placeholder="Ex: 1200" />
+        </label>
+        <label>
+          Saldo atual no banco (R$)
+          <input id="currentBalance" type="number" step="0.01" placeholder="Ex: 1850.35" />
+        </label>
+        <button type="submit">Atualizar Metas</button>
+      </form>
+      <div class="actions-row">
+        <button id="reconcileBalanceBtn" type="button" class="ghost">Conciliar Diferenca de Saldo</button>
+      </div>
+      <div class="progress-wrap">
+        <p>Uso do limite de despesas</p>
+        <div class="progress-track"><span id="expenseProgress"></span></div>
+        <small id="expenseProgressText">Configure uma meta para acompanhar.</small>
+      </div>
+      <div class="progress-wrap">
+        <p>Progresso da economia</p>
+        <div class="progress-track"><span id="savingsProgress"></span></div>
+        <small id="savingsProgressText">Configure uma meta para acompanhar.</small>
+      </div>
+      <div class="progress-wrap">
+        <p>Alerta de orçamento por categoria</p>
+        <small id="budgetAlertText">Sem alertas de orçamento no momento.</small>
+      </div>
+    </section>
+
+    <section class="card reveal" aria-label="Categorias e orçamentos" data-advanced="true">
+      <h2>Categorias e Orçamentos</h2>
+      <form id="categoryForm" class="category-form">
+        <label>
+          Nova categoria
+          <input id="newCategoryName" type="text" maxlength="30" placeholder="Ex: Pets, Assinaturas" />
+        </label>
+        <button id="addCategoryBtn" type="submit">Adicionar categoria</button>
+      </form>
+      <div id="categoryBudgetList" class="budget-list"></div>
+      <small class="helper-text">As categorias padrão não podem ser removidas. Defina orçamento apenas para despesas.</small>
+    </section>
+
+    <section id="sectionTrend" class="card wide reveal" aria-label="Evolução mensal">
+      <div class="card-header">
+        <h2>Evolução dos Últimos 6 Meses</h2>
+      </div>
+      <canvas id="trendChart" height="220"></canvas>
+    </section>
+
+    <section id="sectionCategoryDistribution" class="card wide reveal" aria-label="Distribuição por categoria" data-advanced="true">
+      <div class="card-header">
+        <h2>Distribuição de Despesas por Categoria</h2>
+        <small id="categoryChartSubtitle" class="helper-text">Mês atual</small>
+      </div>
+      <canvas id="categoryChart" height="240"></canvas>
+      <div id="categoryChartLegend" class="chart-legend"></div>
+    </section>
+
+    <section id="sectionMonthlyReport" class="card wide reveal" aria-label="Relatório mensal" data-advanced="true">
+      <div class="card-header">
+        <h2>Relatório Mensal</h2>
+        <div class="filters">
+          <input id="reportMonth" type="month" />
+          <button id="exportMonthlyCsvBtn" type="button" class="ghost">CSV Mensal</button>
+          <button id="exportMonthlyPdfBtn" type="button" class="ghost">PDF Mensal</button>
+          <button id="closeMonthBtn" type="button">Fechar Mes (1 clique)</button>
+        </div>
+      </div>
+      <small class="helper-text">Exporta resumo financeiro, ranking de categorias e transações do mês selecionado.</small>
+      <small id="closeMonthStatus" class="helper-text" role="status" aria-live="polite">Fechamento mensal ainda nao executado.</small>
+      <div id="closeMonthChecklist" class="chart-legend"></div>
+    </section>
+
+    <section class="card wide reveal" aria-label="Histórico de transações">
+      <div class="card-header">
+        <h2>Histórico</h2>
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Buscar por descrição ou categoria" />
+          <select id="typeFilter">
+            <option value="all">Todos</option>
+            <option value="income">Receitas</option>
+            <option value="expense">Despesas</option>
+          </select>
+          <select id="bankFilter">
+            <option value="all">Todos os bancos</option>
+          </select>
+          <input id="monthFilter" type="month" />
+          <button id="clearFilterBtn" type="button" class="ghost">Limpar filtros</button>
+          <button id="exportCsvBtn" type="button" class="ghost">CSV Filtrado</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Origem</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sectionBankConsolidation" class="card wide reveal" aria-label="Consolidacao por banco" data-advanced="true">
+      <div class="card-header">
+        <h2>Consolidacao por Banco</h2>
+        <small id="bankConsolidationSubtitle" class="helper-text">Mes atual</small>
+      </div>
+      <div id="bankConsolidationList" class="bank-consolidation-list"></div>
+      <small class="helper-text">Resumo de receitas, despesas e saldo por origem para o mes selecionado no filtro.</small>
+    </section>
+  </main>
+
+  <template id="emptyStateTemplate">
+    <tr>
+      <td colspan="7" class="empty-row">Nenhum lançamento encontrado para os filtros atuais.</td>
+    </tr>
+  </template>
+
+  <div id="authSettingsModal" class="auth-settings-modal is-hidden" aria-hidden="true">
+    <div id="authSettingsPanel" class="auth-settings-panel" role="dialog" aria-modal="true" aria-labelledby="authSettingsTitle">
+      <div class="card-header">
+        <h3 id="authSettingsTitle">Conta e Sincronizacao</h3>
+        <button id="closeAuthModalBtn" type="button" class="ghost">Fechar</button>
+      </div>
+      <form id="authForm" class="auth-grid">
+        <label>
+          E-mail
+          <input id="authEmail" type="email" placeholder="seuemail@dominio.com" autocomplete="email" />
+        </label>
+        <label>
+          Senha
+          <input id="authPassword" type="password" placeholder="Sua senha" autocomplete="current-password" />
+        </label>
+        <button id="loginBtn" type="submit">Entrar</button>
+        <button id="registerBtn" type="button" class="ghost">Criar conta</button>
+      </form>
+      <div class="actions-row">
+        <button id="logoutBtn" type="button" class="ghost">Sair</button>
+      </div>
+      <small class="helper-text">Apos entrar, os campos de login ficam ocultos e apenas os status sao exibidos na tela principal.</small>
+    </div>
+  </div>
+
+  <div id="preDashboardGate" class="auth-settings-modal is-hidden" aria-hidden="true">
+    <div class="auth-settings-panel" role="dialog" aria-modal="true" aria-labelledby="preDashboardGateTitle">
+      <h3 id="preDashboardGateTitle">Bem-vindo ao FluxoForte</h3>
+      <p class="helper-text">Entre para sincronizar seus dados entre dispositivos ou continue em modo local e comece a usar agora.</p>
+      <div class="actions-row">
+        <button id="openAuthFromGateBtn" type="button">Entrar / Criar Conta</button>
+        <button id="continueLocalBtn" type="button" class="ghost">Continuar em Modo Local</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/script.js"></script>
+</body>
+</html>
