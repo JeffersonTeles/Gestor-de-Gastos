@@ -34,6 +34,11 @@ Aplicacao de gestao financeira com autenticacao, sincronizacao em nuvem e realti
 - Importacao por arrastar/soltar com inferencia automatica de banco/origem.
 - Importacao em lote (multiplos arquivos) com deduplicacao no mesmo processamento.
 - Checklist de fechamento mensal antes da geracao de relatorios.
+- Revisao de importacao antes de salvar (edicao por linha, confianca e sugestoes locais por IA).
+- Desfazer ultimo lote importado, log de auditoria de importacoes e status por lote.
+- Reenvio manual de transacoes pendentes quando sincronizacao em nuvem falha.
+- Resumo mensal/anual com diagnostico de base (quantidade de transacoes e totais usados).
+- Comparativo anual (ano selecionado vs ano anterior) para receita, despesa e saldo.
 
 ## Rodar localmente
 
@@ -92,7 +97,7 @@ O sistema faz:
 
 Limites atuais:
 
-- Maximo de 2 MB por importacao.
+- Maximo de 10 MB por arquivo importado.
 - Importacoes grandes devem ser divididas em lotes.
 
 ## Deploy
