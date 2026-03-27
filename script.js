@@ -4833,3 +4833,12 @@ window.addEventListener("resize", debounce(() => {
   renderCategoryChart();
   renderScenarioProjection();
 }, 180));
+
+// Register Service Worker for PWA offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('Service Worker registration failed:', err);
+    });
+  });
+}

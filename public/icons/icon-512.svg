@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .bg { fill: #0f6675; }
+      .text { fill: #fffaf2; font-family: 'Space Grotesk', sans-serif; font-size: 220px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" class="bg"/>
+  <!-- Rounded corners effect -->
+  <circle cx="64" cy="64" r="64" class="bg"/>
+  <circle cx="448" cy="64" r="64" class="bg"/>
+  <circle cx="64" cy="448" r="64" class="bg"/>
+  <circle cx="448" cy="448" r="64" class="bg"/>
+  <!-- Text "GG" -->
+  <text x="256" y="256" class="text">GG</text>
+</svg>
