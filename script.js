@@ -177,6 +177,7 @@ const typeFilter = document.getElementById("typeFilter");
 const bankFilter = document.getElementById("bankFilter");
 const monthFilter = document.getElementById("monthFilter");
 const clearFilterBtn = document.getElementById("clearFilterBtn");
+const clearAllDataBtn = document.getElementById("clearAllDataBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const trendChart = document.getElementById("trendChart");
 const categoryChart = document.getElementById("categoryChart");
@@ -471,6 +472,7 @@ function bindEvents() {
     renderTable();
     renderBankConsolidation();
   });
+  clearAllDataBtn?.addEventListener("click", onClearAllDataClick);
 
   exportCsvBtn.addEventListener("click", onExportCsvClick);
   exportMonthlyCsvBtn.addEventListener("click", onExportMonthlyCsvClick);
@@ -809,6 +811,93 @@ async function onLogoutClick() {
 
   setAuthMessage("Voce saiu da conta.");
   trackEvent("auth_logout", {});
+}
+
+async function onClearAllDataClick() {
+  const firstConfirm = window.confirm("Isso vai apagar todos os seus dados (transacoes, metas, categorias e importacoes). Deseja continuar?");
+  if (!firstConfirm) return;
+
+  const typed = window.prompt('Digite APAGAR para confirmar a exclusao total dos dados.') || "";
+  if (typed.trim().toUpperCase() !== "APAGAR") {
+    setAuthMessage("Acao cancelada. Texto de confirmacao incorreto.");
+    return;
+  }
+
+  setButtonBusy(clearAllDataBtn, true, "Apagando...");
+
+  try {
+    if (isCloudMode()) {
+      const tableNames = ["transactions", "category_budgets", "categories", "goals", "usage_events"];
+      for (const tableName of tableNames) {
+        const { error } = await supabaseClient
+          .from(tableName)
+          .delete()
+          .eq("user_id", state.user.id);
+
+        if (error) {
+          const msg = getUserFriendlyErrorMessage(error, "database");
+          setAuthMessage(`Falha ao apagar dados na nuvem: ${msg}`);
+          logErrorForDevelopment(error, `onClearAllDataClick.${tableName}`);
+          return;
+        }
+      }
+    }
+
+    state.transactions = [];
+    state.goals = {
+      expenseLimit: 0,
+      savingsGoal: 0,
+      currentBalance: 0,
+      currentBalanceSet: false
+    };
+    state.categories = DEFAULT_CATEGORIES.map((name) => ({ name, isDefault: true }));
+    state.categoryBudgets = {};
+    state.autoRules = [];
+    state.recurringTemplates = [];
+    state.importHistory = [];
+    state.filters = { search: "", type: "all", month: "", bank: "all" };
+
+    droppedImportFiles = [];
+    pendingImportDraft = null;
+
+    if (searchInput) searchInput.value = "";
+    if (typeFilter) typeFilter.value = "all";
+    if (bankFilter) bankFilter.value = "all";
+    if (monthFilter) monthFilter.value = "";
+    if (expenseLimitInput) expenseLimitInput.value = "";
+    if (savingsGoalInput) savingsGoalInput.value = "";
+    if (currentBalanceInput) currentBalanceInput.value = "";
+    if (newCategoryNameInput) newCategoryNameInput.value = "";
+    if (importRawTextInput) importRawTextInput.value = "";
+    if (importFileInput) importFileInput.value = "";
+
+    localStorage.removeItem(STORAGE_KEY_LAST_IMPORT_META);
+    localStorage.removeItem(STORAGE_KEY_LAST_IMPORT_SOURCE);
+    localStorage.removeItem(STORAGE_KEY_IMPORT_LOG);
+
+    persistTransactions();
+    persistGoals();
+    persistCategories();
+    persistCategoryBudgets();
+    persistAutoRules();
+    persistRecurringTemplates();
+    persistImportHistory();
+
+    resetTransactionForm();
+    render();
+
+    setSyncStatus(isCloudMode()
+      ? "Todos os dados locais e da nuvem foram apagados."
+      : "Todos os dados locais foram apagados.");
+    setAuthMessage("Dados apagados com sucesso.");
+    trackEvent("all_data_cleared", { cloud: isCloudMode() });
+  } catch (error) {
+    const msg = getUserFriendlyErrorMessage(error, "database");
+    setAuthMessage(`Erro ao apagar dados: ${msg}`);
+    logErrorForDevelopment(error, "onClearAllDataClick.catch");
+  } finally {
+    setButtonBusy(clearAllDataBtn, false);
+  }
 }
 
 async function onTransactionSubmit(event) {
