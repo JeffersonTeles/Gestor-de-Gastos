@@ -1,17 +1,87 @@
 :root {
+  /* Light theme (default) */
   --bg-1: #f7f3ec;
   --bg-2: #efe6d9;
   --surface: rgba(255, 255, 255, 0.75);
   --surface-strong: #fffaf2;
   --text: #2a2a2a;
+  --text-secondary: #5d5a54;
   --muted: #6f6a60;
   --income: #0b7a5a;
+  --income-light: #eefbf5;
+  --income-border: #bee8d9;
+  --income-alt: #17975f;
   --expense: #b6422f;
+  --expense-light: #fff2ee;
+  --expense-border: #f1c5bc;
+  --expense-alt: #c24a3a;
+  --expense-dark: #a9362a;
   --accent: #0f6675;
   --accent-soft: #94d0d9;
+  --accent-cyan: #2fa7bc;
   --warning: #d08f2f;
+  --warning-alt: #f4953f;
+  --warning-alt-dark: #ec6238;
   --border: rgba(42, 42, 42, 0.12);
   --shadow: 0 12px 40px rgba(40, 30, 10, 0.12);
+  
+  /* Chart/UI specific colors */
+  --chart-grid: rgba(42, 42, 42, 0.25);
+  --chart-bg-light: #fffaf2;
+  --chart-bg-input: #fffefa;
+  --chart-bg-special: #fffdf8;
+  --chart-progress-bg: #ece3d6;
+  --card-bg-neutral: #fffdf8;
+  
+  /* Additional accent colors for charts */
+  --chart-orange: #f4953f;
+  --chart-purple: #7c58a8;
+  --chart-green-alt: #6a8f3a;
+  --chart-teal-alt: #2c8d7b;
+  --chart-brown: #6b5f3e;
+}
+
+html[data-theme="dark"] {
+  /* Dark theme */
+  --bg-1: #0d1117;
+  --bg-2: #161b22;
+  --surface: rgba(22, 27, 34, 0.85);
+  --surface-strong: #1c2128;
+  --text: #e6edf3;
+  --text-secondary: #b0b5ba;
+  --muted: #8b949e;
+  --income: #1f6feb;
+  --income-light: #0d3d1a;
+  --income-border: #1a533b;
+  --income-alt: #238636;
+  --expense: #f85149;
+  --expense-light: #3d1e1e;
+  --expense-border: #5a1d1a;
+  --expense-alt: #da3633;
+  --expense-dark: #b62b1b;
+  --accent: #58a6ff;
+  --accent-soft: #389ed1;
+  --accent-cyan: #79c0ff;
+  --warning: #d29922;
+  --warning-alt: #fb8500;
+  --warning-alt-dark: #daa520;
+  --border: rgba(48, 54, 61, 0.4);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  
+  /* Chart/UI specific colors (dark) */
+  --chart-grid: rgba(110, 118, 129, 0.4);
+  --chart-bg-light: #1c2128;
+  --chart-bg-input: #0d1117;
+  --chart-bg-special: #161b22;
+  --chart-progress-bg: #30363d;
+  --card-bg-neutral: #161b22;
+  
+  /* Additional accent colors for charts (inverted) */
+  --chart-orange: #fb8500;
+  --chart-purple: #a371f7;
+  --chart-green-alt: #85e89d;
+  --chart-teal-alt: #56d4dd;
+  --chart-brown: #d0a070;
 }
 
 * {
@@ -169,7 +239,7 @@ h2 {
 }
 
 .kpis article {
-  background: #fffdf8;
+  background: var(--card-bg-neutral);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.8rem;
@@ -200,43 +270,43 @@ h2 {
 }
 
 #kpiIncomeCard {
-  background: #eefbf5;
-  border-color: #bee8d9;
+  background: var(--income-light);
+  border-color: var(--income-border);
 }
 
 #kpiIncomeCard strong {
-  color: #0b7a5a;
+  color: var(--income);
 }
 
 #kpiExpenseCard {
-  background: #fff2ee;
-  border-color: #f1c5bc;
+  background: var(--expense-light);
+  border-color: var(--expense-border);
 }
 
 #kpiExpenseCard strong {
-  color: #b33a2b;
+  color: var(--expense);
 }
 
 #kpiBalanceCard.is-positive,
 #kpiAdjustedBalanceCard.is-positive {
-  background: #eefbf5;
-  border-color: #bee8d9;
+  background: var(--income-light);
+  border-color: var(--income-border);
 }
 
 #kpiBalanceCard.is-positive strong,
 #kpiAdjustedBalanceCard.is-positive strong {
-  color: #0b7a5a;
+  color: var(--income);
 }
 
 #kpiBalanceCard.is-negative,
 #kpiAdjustedBalanceCard.is-negative {
-  background: #fff2ee;
-  border-color: #f1c5bc;
+  background: var(--expense-light);
+  border-color: var(--expense-border);
 }
 
 #kpiBalanceCard.is-negative strong,
 #kpiAdjustedBalanceCard.is-negative strong {
-  color: #b33a2b;
+  color: var(--expense);
 }
 
 .insight-grid {
@@ -246,7 +316,7 @@ h2 {
 }
 
 .insight-grid article {
-  background: #fffdf8;
+  background: var(--card-bg-neutral);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.7rem;
@@ -275,7 +345,7 @@ h2 {
   padding: 0.6rem;
   border: 1px dashed var(--border);
   border-radius: 10px;
-  background: #fffaf2;
+  background: var(--chart-bg-light);
 }
 
 .insight-list p {
@@ -336,7 +406,7 @@ h2 {
   width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #fffefa;
+  background: var(--chart-bg-input);
   padding: 0.6rem 0.7rem;
   resize: vertical;
   font: inherit;
@@ -375,7 +445,7 @@ select {
   border-radius: 10px;
   border: 1px solid var(--border);
   padding: 0.6rem 0.7rem;
-  background: #fffefa;
+  background: var(--chart-bg-input);
   color: var(--text);
   width: 100%;
 }
@@ -385,7 +455,7 @@ button {
   border-radius: 11px;
   padding: 0.68rem 0.9rem;
   font-weight: 700;
-  background: linear-gradient(130deg, #f4953f, #ec6238);
+  background: linear-gradient(130deg, var(--warning-alt), var(--warning-alt-dark));
   color: #fff;
   cursor: pointer;
   transition: transform 0.15s ease, filter 0.15s ease;
@@ -397,7 +467,7 @@ button:hover {
 }
 
 button.ghost {
-  background: #fff;
+  background: var(--surface-strong);
   color: var(--text);
   border: 1px solid var(--border);
   font-weight: 500;
@@ -456,19 +526,19 @@ button:disabled {
   font-size: 0.76rem;
   font-weight: 700;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface-strong);
 }
 
 .type-pill.income {
-  background: #daf6ee;
-  border-color: #bee8d9;
-  color: #0b7a5a;
+  background: var(--income-light);
+  border-color: var(--income-border);
+  color: var(--income);
 }
 
 .type-pill.expense {
-  background: #ffe6de;
-  border-color: #f1c5bc;
-  color: #b33a2b;
+  background: var(--expense-light);
+  border-color: var(--expense-border);
+  color: var(--expense);
 }
 
 #sectionNewTransaction.income-mode #type {
@@ -482,11 +552,11 @@ button:disabled {
 }
 
 #sectionNewTransaction.income-mode #saveTransactionBtn {
-  background: linear-gradient(130deg, #17975f, #0b7a5a);
+  background: linear-gradient(130deg, var(--income-alt), var(--income));
 }
 
 #sectionNewTransaction.expense-mode #saveTransactionBtn {
-  background: linear-gradient(130deg, #c24a3a, #a9362a);
+  background: linear-gradient(130deg, var(--expense-alt), var(--expense-dark));
 }
 
 .progress-wrap {
@@ -501,7 +571,7 @@ button:disabled {
 .progress-track {
   height: 10px;
   border-radius: 100px;
-  background: #ece3d6;
+  background: var(--chart-progress-bg);
   overflow: hidden;
 }
 
@@ -510,7 +580,7 @@ button:disabled {
   height: 100%;
   width: 0;
   border-radius: inherit;
-  background: linear-gradient(100deg, var(--accent), #2fa7bc);
+  background: linear-gradient(100deg, var(--accent), var(--accent-cyan));
   transition: width 0.35s ease;
 }
 
@@ -574,7 +644,7 @@ button:disabled {
   grid-template-columns: 1fr minmax(120px, 0.8fr) auto;
   gap: 0.5rem;
   align-items: center;
-  background: #fffdf8;
+  background: var(--card-bg-neutral);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.5rem;

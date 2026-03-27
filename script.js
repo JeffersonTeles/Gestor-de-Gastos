@@ -3825,6 +3825,14 @@ function renderFutureSavingsChart(baseSeries, optimizedSeries) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, rect.width, rect.height);
 
+  // Get colors from CSS variables (respects dark mode)
+  const root = document.documentElement;
+  const styles = getComputedStyle(root);
+  const textSecondary = styles.getPropertyValue('--text-secondary').trim();
+  const muted = styles.getPropertyValue('--muted').trim();
+  const income = styles.getPropertyValue('--income').trim();
+  const border = styles.getPropertyValue('--border').trim();
+
   const allValues = [...baseSeries, ...optimizedSeries, 0];
   const minVal = Math.min(...allValues);
   const maxVal = Math.max(...allValues);
@@ -3836,7 +3844,7 @@ function renderFutureSavingsChart(baseSeries, optimizedSeries) {
   const plotH = rect.height - padY * 2;
 
   drawProjectionLine(ctx, baseSeries, {
-    color: "#8a7f71",
+    color: muted,
     padX,
     padY,
     plotW,
@@ -3846,7 +3854,7 @@ function renderFutureSavingsChart(baseSeries, optimizedSeries) {
   });
 
   drawProjectionLine(ctx, optimizedSeries, {
-    color: "#0b7a5a",
+    color: income,
     padX,
     padY,
     plotW,
@@ -3859,11 +3867,11 @@ function renderFutureSavingsChart(baseSeries, optimizedSeries) {
   ctx.beginPath();
   ctx.moveTo(padX, zeroY);
   ctx.lineTo(padX + plotW, zeroY);
-  ctx.strokeStyle = "#d1c9bc";
+  ctx.strokeStyle = border;
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  ctx.fillStyle = "#5d5a54";
+  ctx.fillStyle = textSecondary;
   ctx.font = "11px Space Grotesk";
   ctx.fillText("Base", padX, padY - 4);
   ctx.fillText("Com ajuste", padX + 52, padY - 4);
@@ -4473,11 +4481,19 @@ function renderTrendChart() {
   const monthlyData = getLastSixMonthsNet();
   ctx.clearRect(0, 0, rect.width, rect.height);
 
+  // Get colors from CSS variables (respects dark mode)
+  const root = document.documentElement;
+  const styles = getComputedStyle(root);
+  const incomeColor = styles.getPropertyValue('--income').trim();
+  const expenseColor = styles.getPropertyValue('--expense').trim();
+  const gridColor = styles.getPropertyValue('--chart-grid').trim();
+  const textColor = styles.getPropertyValue('--text-secondary').trim();
+
   const maxAbs = Math.max(1, ...monthlyData.map((d) => Math.abs(d.net)));
   const barWidth = rect.width / (monthlyData.length * 1.6);
   const baseLine = rect.height * 0.6;
 
-  ctx.strokeStyle = "rgba(42,42,42,0.25)";
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, baseLine);
@@ -4489,11 +4505,11 @@ function renderTrendChart() {
     const height = (Math.abs(item.net) / maxAbs) * (rect.height * 0.42);
     const y = item.net >= 0 ? baseLine - height : baseLine;
 
-    ctx.fillStyle = item.net >= 0 ? "#0b7a5a" : "#b6422f";
+    ctx.fillStyle = item.net >= 0 ? incomeColor : expenseColor;
     roundRect(ctx, x, y, barWidth, height, 8);
     ctx.fill();
 
-    ctx.fillStyle = "#5d5a54";
+    ctx.fillStyle = textColor;
     ctx.font = "12px Space Grotesk";
     ctx.fillText(item.label, x - 6, rect.height - 14);
   });
@@ -4514,8 +4530,21 @@ function renderCategoryChart() {
   const report = buildMonthlyReportData(monthKey);
   categoryChartSubtitle.textContent = report.monthLabel;
 
+  // Get colors from CSS variables (respects dark mode)
+  const root = document.documentElement;
+  const styles = getComputedStyle(root);
+  const mutedColor = styles.getPropertyValue('--muted').trim();
+  const chartBgLight = styles.getPropertyValue('--chart-bg-light').trim();
+  const accent = styles.getPropertyValue('--accent').trim();
+  const warning = styles.getPropertyValue('--warning-alt').trim();
+  const expense = styles.getPropertyValue('--expense').trim();
+  const chartGreen = styles.getPropertyValue('--chart-green-alt').trim();
+  const chartPurple = styles.getPropertyValue('--chart-purple').trim();
+  const chartTeal = styles.getPropertyValue('--chart-teal-alt').trim();
+  const chartBrown = styles.getPropertyValue('--chart-brown').trim();
+
   if (report.categoryRanking.length === 0) {
-    ctx.fillStyle = "#6f6a60";
+    ctx.fillStyle = mutedColor;
     ctx.font = "14px Space Grotesk";
     ctx.fillText("Sem despesas para o mes selecionado.", 16, 32);
     categoryChartLegend.innerHTML = "";
@@ -4527,7 +4556,7 @@ function renderCategoryChart() {
   const centerY = rect.height * 0.52;
   const radius = Math.min(rect.height * 0.34, rect.width * 0.18);
 
-  const palette = ["#0f6675", "#f4953f", "#b6422f", "#6a8f3a", "#7c58a8", "#2c8d7b", "#6b5f3e"];
+  const palette = [accent, warning, expense, chartGreen, chartPurple, chartTeal, chartBrown];
   let startAngle = -Math.PI / 2;
 
   report.categoryRanking.slice(0, 7).forEach((item, index) => {
@@ -4546,10 +4575,10 @@ function renderCategoryChart() {
 
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius * 0.55, 0, Math.PI * 2);
-  ctx.fillStyle = "#fffaf2";
+  ctx.fillStyle = chartBgLight;
   ctx.fill();
 
-  ctx.fillStyle = "#5d5a54";
+  ctx.fillStyle = mutedColor;
   ctx.font = "11px Space Grotesk";
   ctx.fillText("Despesas", centerX - 22, centerY - 4);
   ctx.font = "bold 13px Space Grotesk";
@@ -4633,6 +4662,13 @@ function renderScenarioChart(baseProjection, optimizedProjection) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, rect.width, rect.height);
 
+  // Get colors from CSS variables (respects dark mode)
+  const root = document.documentElement;
+  const styles = getComputedStyle(root);
+  const textSecondary = styles.getPropertyValue('--text-secondary').trim();
+  const muted = styles.getPropertyValue('--muted').trim();
+  const income = styles.getPropertyValue('--income').trim();
+
   const allValues = [...baseProjection, ...optimizedProjection];
   const minVal = Math.min(...allValues);
   const maxVal = Math.max(...allValues);
@@ -4644,7 +4680,7 @@ function renderScenarioChart(baseProjection, optimizedProjection) {
   const plotH = rect.height - padY * 2;
 
   drawProjectionLine(ctx, baseProjection, {
-    color: "#8a7f71",
+    color: muted,
     label: "Base",
     padX,
     padY,
@@ -4655,7 +4691,7 @@ function renderScenarioChart(baseProjection, optimizedProjection) {
   });
 
   drawProjectionLine(ctx, optimizedProjection, {
-    color: "#0b7a5a",
+    color: income,
     label: "Otimizado",
     padX,
     padY,
@@ -4665,7 +4701,7 @@ function renderScenarioChart(baseProjection, optimizedProjection) {
     span
   });
 
-  ctx.fillStyle = "#5d5a54";
+  ctx.fillStyle = textSecondary;
   ctx.font = "11px Space Grotesk";
   ctx.fillText("Base", padX, padY - 4);
   ctx.fillText("Otimizado", padX + 60, padY - 4);
@@ -4842,3 +4878,107 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// ============================================================
+// Dark Mode Theme Management
+// ============================================================
+
+const themeManager = {
+  STORAGE_KEY: 'theme-preference',
+  LIGHT_THEME: '',
+  DARK_THEME: 'dark',
+
+  init() {
+    this.setupEventListeners();
+    this.applySystemPreference();
+  },
+
+  setupEventListeners() {
+    const themeModeBtn = document.getElementById('themeModeBtn');
+    if (themeModeBtn) {
+      themeModeBtn.addEventListener('click', () => this.toggle());
+    }
+
+    // Listen for system theme changes
+    const prefersDarkMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    prefersDarkMedia.addEventListener('change', (e) => {
+      const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+      if (!savedTheme) {
+        // No user preference, apply system preference
+        this.setTheme(e.matches ? this.DARK_THEME : this.LIGHT_THEME);
+      }
+    });
+  },
+
+  applySystemPreference() {
+    const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+
+    if (savedTheme) {
+      // User has a saved preference
+      this.setTheme(savedTheme);
+    } else {
+      // No saved preference, use system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.setTheme(prefersDark ? this.DARK_THEME : this.LIGHT_THEME);
+    }
+  },
+
+  toggle() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || this.LIGHT_THEME;
+    const newTheme = currentTheme === this.LIGHT_THEME ? this.DARK_THEME : this.LIGHT_THEME;
+    this.setTheme(newTheme);
+    localStorage.setItem(this.STORAGE_KEY, newTheme);
+  },
+
+  setTheme(theme) {
+    if (theme === this.LIGHT_THEME) {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+
+    this.updateButtonText();
+    this.updateMetaThemeColor();
+    this.redrawCharts();
+  },
+
+  updateButtonText() {
+    const themeModeBtn = document.getElementById('themeModeBtn');
+    if (themeModeBtn) {
+      const isDark = document.documentElement.getAttribute('data-theme') === this.DARK_THEME;
+      themeModeBtn.textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+    }
+  },
+
+  updateMetaThemeColor() {
+    const isDark = document.documentElement.getAttribute('data-theme') === this.DARK_THEME;
+    const themeColor = isDark ? '#58a6ff' : '#0f6675'; // Light: teal, Dark: blue
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = 'theme-color';
+      document.head.appendChild(metaThemeColor);
+    }
+
+    metaThemeColor.content = themeColor;
+  },
+
+  redrawCharts() {
+    // Redraw all canvas charts with updated colors
+    if (typeof renderTrendChart !== 'undefined') {
+      renderTrendChart();
+    }
+    if (typeof renderCategoryChart !== 'undefined') {
+      renderCategoryChart();
+    }
+    if (typeof renderScenarioProjection !== 'undefined') {
+      renderScenarioProjection();
+    }
+  }
+};
+
+// Initialize theme on page load
+window.addEventListener('DOMContentLoaded', () => {
+  themeManager.init();
+});
