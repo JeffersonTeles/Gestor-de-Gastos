@@ -621,13 +621,23 @@ function maybeShowPreDashboardGate() {
 
 function setupSupabaseClient() {
   const cfg = {
-    url: import.meta.env.VITE_SUPABASE_URL,
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
+    url: String(import.meta.env.VITE_SUPABASE_URL || "").trim(),
+    anonKey: String(import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim()
   };
 
   if (!cfg.url || !cfg.anonKey) {
     setModeBadge("local", "Modo local");
     setAuthMessage("Configure o arquivo .env com VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.");
+    setSyncStatus("Somente armazenamento local.");
+    refreshTelemetryStatus();
+    return;
+  }
+
+  const hasValidUrl = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(cfg.url);
+  const hasValidAnonKey = cfg.anonKey.startsWith("eyJ") && cfg.anonKey.length > 40;
+  if (!hasValidUrl || !hasValidAnonKey) {
+    setModeBadge("local", "Modo local");
+    setAuthMessage("Variáveis do Supabase inválidas. Revise URL e ANON KEY no Vercel.");
     setSyncStatus("Somente armazenamento local.");
     refreshTelemetryStatus();
     return;
@@ -642,11 +652,21 @@ function setupSupabaseClient() {
 async function restoreSessionAndSync() {
   setSyncStatus("Verificando sessao...");
 
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) {
-    const msg = getUserFriendlyErrorMessage(error, "auth");
+  let data;
+  try {
+    const response = await supabaseClient.auth.getSession();
+    data = response.data;
+    if (response.error) {
+      const msg = getUserFriendlyErrorMessage(response.error, "auth");
+      setAuthMessage(msg);
+      logErrorForDevelopment(response.error, "restoreSessionAndSync");
+      return;
+    }
+  } catch (error) {
+    const msg = getUserFriendlyErrorMessage(error, "sync");
     setAuthMessage(msg);
-    logErrorForDevelopment(error, "restoreSessionAndSync");
+    setSyncStatus("Falha ao verificar sessão. Continuando em modo local.");
+    logErrorForDevelopment(error, "restoreSessionAndSync.catch");
     return;
   }
 
@@ -663,9 +683,12 @@ async function restoreSessionAndSync() {
 
 async function onLoginSubmit(event) {
   event.preventDefault();
-  if (!supabaseClient) return;
+  if (!supabaseClient) {
+    setAuthMessage("Nuvem não configurada. Revise as variáveis VITE_SUPABASE no deploy.");
+    return;
+  }
 
-  const email = authEmailInput.value.trim();
+  const email = String(authEmailInput.value || "").trim().toLowerCase();
   const password = authPasswordInput.value;
   
   // Validar email/senha presentes
@@ -705,15 +728,22 @@ async function onLoginSubmit(event) {
     closePreDashboardGate();
     closeAuthSettingsModal();
     trackEvent("auth_login_success", { emailDomain: email.split("@")[1] || "" });
+  } catch (error) {
+    const msg = getUserFriendlyErrorMessage(error, "auth");
+    setAuthMessage(msg);
+    logErrorForDevelopment(error, "onLoginSubmit.catch");
   } finally {
     setButtonBusy(loginBtn, false);
   }
 }
 
 async function onRegisterClick() {
-  if (!supabaseClient) return;
+  if (!supabaseClient) {
+    setAuthMessage("Nuvem não configurada. Revise as variáveis VITE_SUPABASE no deploy.");
+    return;
+  }
 
-  const email = authEmailInput.value.trim();
+  const email = String(authEmailInput.value || "").trim().toLowerCase();
   const password = authPasswordInput.value;
   
   if (!email || !password) {
@@ -757,6 +787,10 @@ async function onRegisterClick() {
 
     setAuthMessage("Conta criada. Verifique seu e-mail se a confirmacao estiver ativa.");
     trackEvent("auth_register_success", { emailDomain: email.split("@")[1] || "" });
+  } catch (error) {
+    const msg = getUserFriendlyErrorMessage(error, "auth");
+    setAuthMessage(msg);
+    logErrorForDevelopment(error, "onRegisterClick.catch");
   } finally {
     setButtonBusy(registerBtn, false);
   }
@@ -2952,7 +2986,12 @@ async function pullCloudData() {
 
   setSyncStatus("Sincronizando com a nuvem...");
 
-  const [txRes, goalsRes, categoriesRes, budgetsRes] = await Promise.all([
+  let txRes;
+  let goalsRes;
+  let categoriesRes;
+  let budgetsRes;
+  try {
+    [txRes, goalsRes, categoriesRes, budgetsRes] = await Promise.all([
     supabaseClient
       .from("transactions")
       .select("id, description, amount, date, type, category, source_bank, import_hash, import_batch_id, import_source_format, imported_at")
@@ -2961,24 +3000,35 @@ async function pullCloudData() {
     supabaseClient.from("goals").select("expense_limit, savings_goal").eq("user_id", state.user.id).maybeSingle(),
     supabaseClient.from("categories").select("name, is_default").eq("user_id", state.user.id).order("name"),
     supabaseClient.from("category_budgets").select("category_name, budget_amount").eq("user_id", state.user.id)
-  ]);
+    ]);
+  } catch (error) {
+    const msg = getUserFriendlyErrorMessage(error, "sync");
+    setAuthMessage(msg);
+    setSyncStatus("Falha na sincronização. Continuando com dados locais.");
+    logErrorForDevelopment(error, "pullCloudData.catch");
+    return;
+  }
 
   if (txRes.error) {
-    setAuthMessage(`Erro ao ler transacoes da nuvem: ${txRes.error.message}`);
+    setAuthMessage(getUserFriendlyErrorMessage(txRes.error, "database"));
+    logErrorForDevelopment(txRes.error, "pullCloudData.transactions");
     setSyncStatus("Falha na sincronizacao. Continuando com dados locais.");
     return;
   }
 
   if (goalsRes.error && goalsRes.error.code !== "PGRST116") {
-    setAuthMessage(`Erro ao ler metas da nuvem: ${goalsRes.error.message}`);
+    setAuthMessage(getUserFriendlyErrorMessage(goalsRes.error, "database"));
+    logErrorForDevelopment(goalsRes.error, "pullCloudData.goals");
   }
 
   if (categoriesRes.error) {
-    setAuthMessage(`Erro ao ler categorias da nuvem: ${categoriesRes.error.message}`);
+    setAuthMessage(getUserFriendlyErrorMessage(categoriesRes.error, "database"));
+    logErrorForDevelopment(categoriesRes.error, "pullCloudData.categories");
   }
 
   if (budgetsRes.error) {
-    setAuthMessage(`Erro ao ler orcamentos da nuvem: ${budgetsRes.error.message}`);
+    setAuthMessage(getUserFriendlyErrorMessage(budgetsRes.error, "database"));
+    logErrorForDevelopment(budgetsRes.error, "pullCloudData.budgets");
   }
 
   const remoteTransactions = (txRes.data || []).map(normalizeTransaction);

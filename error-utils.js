@@ -13,8 +13,17 @@ export function getUserFriendlyErrorMessage(error, context = "generic") {
   switch (context) {
     case "auth":
       if (message.includes("invalid")) return "Credenciais inválidas.";
+      if (message.includes("invalid login credentials") || message.includes("invalid_credentials")) {
+        return "E-mail ou senha incorretos.";
+      }
       if (message.includes("email not confirmed") || message.includes("email_not_confirmed")) {
         return "Confirme seu e-mail antes de entrar.";
+      }
+      if (message.includes("already registered") || message.includes("user already registered")) {
+        return "Este e-mail já está registrado.";
+      }
+      if (message.includes("signup is disabled")) {
+        return "Cadastro temporariamente desativado.";
       }
       if (message.includes("too many requests") || code === "over_request_rate_limit") {
         return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
