@@ -836,25 +836,41 @@ async function onClearAllDataClick() {
 
   try {
     if (isCloudMode()) {
-      const tableNames = ["transactions", "category_budgets", "categories", "goals", "usage_events"];
-      const deletionResults = await Promise.all(
-        tableNames.map(async (tableName) => {
-          const { error } = await supabaseClient
-            .from(tableName)
-            .delete()
-            .eq("user_id", state.user.id);
-          return { tableName, error };
-        })
-      );
+      const rpcRes = await supabaseClient.rpc("clear_user_data");
+      if (rpcRes.error) {
+        const rpcMessage = String(rpcRes.error.message || "").toLowerCase();
+        const rpcMissing = rpcMessage.includes("could not find the function")
+          || rpcMessage.includes("function public.clear_user_data")
+          || rpcRes.error.code === "PGRST202";
 
-      const failed = deletionResults.filter((item) => item.error);
-      if (failed.length > 0) {
-        failed.forEach((item) => logErrorForDevelopment(item.error, `onClearAllDataClick.${item.tableName}`));
-        const firstMsg = getUserFriendlyErrorMessage(failed[0].error, "database");
-        const failedTables = failed.map((item) => item.tableName).join(", ");
-        setAuthMessage(`Falha ao apagar dados na nuvem: ${firstMsg}`);
-        setSyncStatus(`Processo interrompido. Tabelas com falha: ${failedTables}.`);
-        return;
+        if (rpcMissing) {
+          const tableNames = ["transactions", "category_budgets", "categories", "goals", "usage_events"];
+          const deletionResults = await Promise.all(
+            tableNames.map(async (tableName) => {
+              const { error } = await supabaseClient
+                .from(tableName)
+                .delete()
+                .eq("user_id", state.user.id);
+              return { tableName, error };
+            })
+          );
+
+          const failed = deletionResults.filter((item) => item.error);
+          if (failed.length > 0) {
+            failed.forEach((item) => logErrorForDevelopment(item.error, `onClearAllDataClick.${item.tableName}`));
+            const firstMsg = getUserFriendlyErrorMessage(failed[0].error, "database");
+            const failedTables = failed.map((item) => item.tableName).join(", ");
+            setAuthMessage(`Falha ao apagar dados na nuvem: ${firstMsg}`);
+            setSyncStatus(`Processo interrompido. Tabelas com falha: ${failedTables}.`);
+            return;
+          }
+        } else {
+          const msg = getUserFriendlyErrorMessage(rpcRes.error, "database");
+          setAuthMessage(`Falha ao apagar dados na nuvem: ${msg}`);
+          setSyncStatus("Processo interrompido. Tente novamente em alguns instantes.");
+          logErrorForDevelopment(rpcRes.error, "onClearAllDataClick.rpc");
+          return;
+        }
       }
     }
 
