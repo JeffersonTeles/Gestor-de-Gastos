@@ -80,7 +80,7 @@
         </label>
         <label>
           Valor (R$)
-          <input id="amount" name="amount" type="number" step="0.01" min="0.01" required />
+          <input id="amount" name="amount" type="text" inputmode="numeric" required />
         </label>
         <label>
           Data
@@ -478,6 +478,11 @@
           </thead>
           <tbody id="transactionsTableBody"></tbody>
         </table>
+      </div>
+      <div class="actions-row" aria-label="Paginacao do historico">
+        <button id="historyPrevPageBtn" type="button" class="ghost">Anterior</button>
+        <small id="historyPageInfo" class="helper-text">Pagina 1 de 1</small>
+        <button id="historyNextPageBtn" type="button" class="ghost">Proximo</button>
       </div>
       <div class="actions-row">
         <button id="clearAllDataBtnSecondary" type="button" class="ghost">Apagar todos os dados</button>

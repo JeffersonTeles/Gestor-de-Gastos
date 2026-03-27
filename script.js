@@ -71,6 +71,7 @@ const STORAGE_KEY_IMPORT_LOG = "fluxoforte.importLog.v1";
 const MAX_IMPORT_LOG_ITEMS = 20;
 const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
 const IMPORT_INFER_SAMPLE_CHARS = 4000;
+const TRANSACTIONS_PER_PAGE = 20;
 
 const DEFAULT_CATEGORIES = [
   "Moradia",
@@ -98,6 +99,7 @@ const state = {
     month: "",
     bank: "all"
   },
+  currentPage: 1,
   telemetry: {
     sent: 0,
     failed: 0,
@@ -176,6 +178,9 @@ const searchInput = document.getElementById("searchInput");
 const typeFilter = document.getElementById("typeFilter");
 const bankFilter = document.getElementById("bankFilter");
 const monthFilter = document.getElementById("monthFilter");
+const historyPrevPageBtn = document.getElementById("historyPrevPageBtn");
+const historyNextPageBtn = document.getElementById("historyNextPageBtn");
+const historyPageInfo = document.getElementById("historyPageInfo");
 const clearFilterBtn = document.getElementById("clearFilterBtn");
 const clearAllDataBtn = document.getElementById("clearAllDataBtn");
 const clearAllDataBtnSecondary = document.getElementById("clearAllDataBtnSecondary");
@@ -383,6 +388,7 @@ async function bootstrap() {
 function bindEvents() {
   transactionForm.addEventListener("submit", onTransactionSubmit);
   typeInput?.addEventListener("change", updateTransactionFormTone);
+  amountInput?.addEventListener("input", onAmountInputMask);
   goalsForm.addEventListener("submit", onGoalsSubmit);
   reconcileBalanceBtn?.addEventListener("click", onReconcileBalanceClick);
   categoryForm.addEventListener("submit", onCategorySubmit);
@@ -415,16 +421,19 @@ function bindEvents() {
 
   searchInput.addEventListener("input", (event) => {
     state.filters.search = event.target.value.trim().toLowerCase();
+    resetHistoryPage();
     renderTable();
   });
 
   typeFilter.addEventListener("change", (event) => {
     state.filters.type = event.target.value;
+    resetHistoryPage();
     renderTable();
   });
 
   monthFilter.addEventListener("change", (event) => {
     state.filters.month = event.target.value;
+    resetHistoryPage();
     if (summaryPeriodInput) summaryPeriodInput.value = "month";
     if ((summaryPeriodInput?.value || "month") === "month") {
       if (summaryMonthInput) summaryMonthInput.value = event.target.value || getLocalCurrentMonth();
@@ -462,17 +471,32 @@ function bindEvents() {
 
   bankFilter.addEventListener("change", (event) => {
     state.filters.bank = event.target.value;
+    resetHistoryPage();
     renderTable();
   });
 
   clearFilterBtn.addEventListener("click", () => {
     state.filters = { search: "", type: "all", month: "", bank: "all" };
+    resetHistoryPage();
     searchInput.value = "";
     typeFilter.value = "all";
     monthFilter.value = "";
     bankFilter.value = "all";
     renderTable();
     renderBankConsolidation();
+  });
+
+  historyPrevPageBtn?.addEventListener("click", () => {
+    if (state.currentPage <= 1) return;
+    state.currentPage -= 1;
+    renderTable();
+  });
+
+  historyNextPageBtn?.addEventListener("click", () => {
+    const totalPages = getFilteredTransactionTotalPages();
+    if (state.currentPage >= totalPages) return;
+    state.currentPage += 1;
+    renderTable();
   });
   clearAllDataBtn?.addEventListener("click", onClearAllDataClick);
   clearAllDataBtnSecondary?.addEventListener("click", onClearAllDataClick);
@@ -887,6 +911,7 @@ async function onClearAllDataClick() {
     state.recurringTemplates = [];
     state.importHistory = [];
     state.filters = { search: "", type: "all", month: "", bank: "all" };
+    resetHistoryPage();
 
     droppedImportFiles = [];
     pendingImportDraft = null;
@@ -942,7 +967,7 @@ async function onTransactionSubmit(event) {
   const formData = new FormData(transactionForm);
   
   // Sanitizar inputs
-  const amount = sanitizeNumber(formData.get("amount"));
+const amount = Number(amountInput.dataset.realValue || 0);
   const description = sanitizeDescription(String(formData.get("description")).trim());
   const date = sanitizeDate(String(formData.get("date")));
   const type = String(formData.get("type"));
@@ -950,7 +975,7 @@ async function onTransactionSubmit(event) {
 
   // Validar campos obrigatórios
   if (!Number.isFinite(amount) || amount <= 0) {
-    showToast("Valor deve ser maior que zero.", TOAST_TYPES.ERROR);
+    showToast("Informe um valor maior que zero.", TOAST_TYPES.ERROR);
     return;
   }
 
@@ -3106,7 +3131,8 @@ function startEditTransaction(id) {
 
   state.editingTransactionId = tx.id;
   descriptionInput.value = tx.description;
-  amountInput.value = tx.amount;
+  amountInput.value = formatCentsAsCurrency(Math.round(tx.amount * 100));
+  amountInput.dataset.realValue = tx.amount.toString();
   dateInput.value = normalizeDateForDateInput(tx.date) || getLocalTodayISODate();
   typeInput.value = tx.type;
   categorySelect.value = tx.category;
@@ -3117,10 +3143,35 @@ function startEditTransaction(id) {
   formModeText.textContent = "Voce esta editando um lancamento existente.";
 }
 
+function formatCentsAsCurrency(cents) {
+  const valueInReais = cents / 100;
+  return valueInReais.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function extractDigitsOnly(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function onAmountInputMask(event) {
+  const input = event.target;
+  const digits = extractDigitsOnly(input.value);
+  const cents = Number(digits) || 0;
+  
+  amountInput.dataset.realValue = (cents / 100).toString();
+  input.value = formatCentsAsCurrency(cents);
+}
+
 function resetTransactionForm() {
   state.editingTransactionId = null;
   transactionForm.reset();
   dateInput.value = getLocalTodayISODate();
+  amountInput.value = "";
+  amountInput.dataset.realValue = "";
   saveTransactionBtn.textContent = "Salvar Lancamento";
   cancelEditBtn.disabled = true;
   formModeText.textContent = "Preencha os dados para adicionar um lancamento.";
@@ -4220,17 +4271,23 @@ function getExpenseByCategoryForYear(yearKey) {
 }
 
 function renderTable() {
-  const filtered = getFilteredTransactions();
+  const filtered = getFilteredTransactions().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / TRANSACTIONS_PER_PAGE));
+  state.currentPage = Math.min(Math.max(1, state.currentPage), totalPages);
+
+  const startIndex = (state.currentPage - 1) * TRANSACTIONS_PER_PAGE;
+  const endIndex = startIndex + TRANSACTIONS_PER_PAGE;
+  const pageRows = filtered.slice(startIndex, endIndex);
+
+  renderHistoryPaginationControls(totalPages);
   tableBody.innerHTML = "";
 
-  if (!filtered.length) {
+  if (!pageRows.length) {
     tableBody.append(emptyStateTemplate.content.cloneNode(true));
     return;
   }
 
-  const rows = filtered
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .map((tx) => {
+  const rows = pageRows.map((tx) => {
       const tr = document.createElement("tr");
       const isIncome = tx.type === "income";
       const sign = isIncome ? "+" : "-";
@@ -4253,6 +4310,29 @@ function renderTable() {
     });
 
   tableBody.append(...rows);
+}
+
+function resetHistoryPage() {
+  state.currentPage = 1;
+}
+
+function getFilteredTransactionTotalPages() {
+  const totalItems = getFilteredTransactions().length;
+  return Math.max(1, Math.ceil(totalItems / TRANSACTIONS_PER_PAGE));
+}
+
+function renderHistoryPaginationControls(totalPages) {
+  if (historyPageInfo) {
+    historyPageInfo.textContent = `Pagina ${state.currentPage} de ${totalPages}`;
+  }
+
+  if (historyPrevPageBtn) {
+    historyPrevPageBtn.disabled = state.currentPage <= 1;
+  }
+
+  if (historyNextPageBtn) {
+    historyNextPageBtn.disabled = state.currentPage >= totalPages;
+  }
 }
 
 function getFilteredTransactions() {
