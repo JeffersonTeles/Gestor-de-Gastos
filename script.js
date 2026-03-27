@@ -178,6 +178,7 @@ const bankFilter = document.getElementById("bankFilter");
 const monthFilter = document.getElementById("monthFilter");
 const clearFilterBtn = document.getElementById("clearFilterBtn");
 const clearAllDataBtn = document.getElementById("clearAllDataBtn");
+const clearAllDataBtnSecondary = document.getElementById("clearAllDataBtnSecondary");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const trendChart = document.getElementById("trendChart");
 const categoryChart = document.getElementById("categoryChart");
@@ -473,6 +474,7 @@ function bindEvents() {
     renderBankConsolidation();
   });
   clearAllDataBtn?.addEventListener("click", onClearAllDataClick);
+  clearAllDataBtnSecondary?.addEventListener("click", onClearAllDataClick);
 
   exportCsvBtn.addEventListener("click", onExportCsvClick);
   exportMonthlyCsvBtn.addEventListener("click", onExportMonthlyCsvClick);
@@ -823,7 +825,7 @@ async function onClearAllDataClick() {
     return;
   }
 
-  setButtonBusy(clearAllDataBtn, true, "Apagando...");
+  setClearAllButtonsBusy(true, "Apagando...");
 
   try {
     if (isCloudMode()) {
@@ -896,8 +898,13 @@ async function onClearAllDataClick() {
     setAuthMessage(`Erro ao apagar dados: ${msg}`);
     logErrorForDevelopment(error, "onClearAllDataClick.catch");
   } finally {
-    setButtonBusy(clearAllDataBtn, false);
+    setClearAllButtonsBusy(false);
   }
+}
+
+function setClearAllButtonsBusy(busy, busyLabel = "Apagando...") {
+  setButtonBusy(clearAllDataBtn, busy, busyLabel);
+  setButtonBusy(clearAllDataBtnSecondary, busy, busyLabel);
 }
 
 async function onTransactionSubmit(event) {
