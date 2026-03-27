@@ -200,6 +200,7 @@ const saveTransactionBtn = document.getElementById("saveTransactionBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const formModeText = document.getElementById("formModeText");
 const globalSpinner = document.getElementById("globalSpinner");
+const toastContainer = document.getElementById("toastContainer");
 
 const categoryForm = document.getElementById("categoryForm");
 const newCategoryNameInput = document.getElementById("newCategoryName");
@@ -279,6 +280,7 @@ let guideStepIndex = -1;
 let pdfJsModulePromise = null;
 let ocrWorkerPromise = null;
 let pendingImportDraft = null;
+let alertedBudgetCategories = new Set();
 
 const guideSteps = [
   {
@@ -1052,6 +1054,8 @@ const amount = Number(amountInput.dataset.realValue || 0);
 
   resetTransactionForm();
   render();
+  checkBudgetAlerts();
+  showToast(state.editingTransactionId ? "Lançamento atualizado!" : "Lançamento salvo!", "success", 3000);
 }
 
 async function onGoalsSubmit(event) {
@@ -1091,6 +1095,7 @@ async function onGoalsSubmit(event) {
   }
 
   renderSummary();
+  showToast("Metas atualizadas com sucesso!", "success", 3000);
   trackEvent("goals_updated", {
     expenseLimit: state.goals.expenseLimit,
     savingsGoal: state.goals.savingsGoal,
@@ -1180,6 +1185,7 @@ async function onCategorySubmit(event) {
   persistCategories();
   newCategoryNameInput.value = "";
   renderCategoryArea();
+  showToast(`Categoria "${categoryName}" criada!`, "success", 3000);
   trackEvent("category_created", { categoryName });
 }
 
@@ -1386,7 +1392,9 @@ async function onGenerateRecurringClick() {
 
   persistTransactions();
   render();
+  checkBudgetAlerts();
   recurringStatusText.textContent = `Geracao concluida: ${unique.length} lancamentos recorrentes adicionados.`;
+  showToast(`${unique.length} lançamento(s) recorrente(s) gerado(s)!`, "success", 3000);
   trackEvent("recurring_generated", { generated: unique.length });
 }
 
@@ -2103,6 +2111,8 @@ async function onConfirmImportClick() {
       })));
       persistTransactions();
       render();
+      checkBudgetAlerts();
+      showToast(`${selected.length} transação(ões) importada(s) com sucesso!`, "success", 3000);
     }
 
     if (!String(importStatusText.textContent || "").includes("salva localmente")) {
@@ -2645,6 +2655,71 @@ function hideGlobalSpinner() {
   if (globalSpinner) {
     globalSpinner.classList.add("is-hidden");
   }
+}
+
+function showToast(message, type = "warning", duration = 4000) {
+  if (!toastContainer) return;
+
+  const toastEl = document.createElement("div");
+  toastEl.className = `toast toast--${type}`;
+  toastEl.setAttribute("role", "status");
+  toastEl.textContent = message;
+
+  toastContainer.appendChild(toastEl);
+
+  const timeoutId = setTimeout(() => {
+    toastEl.classList.add("toast--closing");
+    setTimeout(() => {
+      toastEl.remove();
+    }, 300);
+  }, duration);
+
+  toastEl.addEventListener("click", () => {
+    clearTimeout(timeoutId);
+    toastEl.classList.add("toast--closing");
+    setTimeout(() => {
+      toastEl.remove();
+    }, 300);
+  });
+}
+
+function checkBudgetAlerts() {
+  const monthKey = getLocalCurrentMonth();
+  const monthTransactions = state.transactions.filter(
+    (tx) => tx.date.slice(0, 7) === monthKey && tx.type === "expense"
+  );
+
+  const spentByCategory = {};
+  monthTransactions.forEach((tx) => {
+    spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount;
+  });
+
+  Object.entries(state.categoryBudgets).forEach(([category, budget]) => {
+    if (!budget || budget <= 0) return;
+
+    const spent = spentByCategory[category] || 0;
+    const percentage = (spent / budget) * 100;
+    const categoryKey = `${monthKey}-${category}`;
+
+    if (percentage >= 100 && !alertedBudgetCategories.has(categoryKey)) {
+      alertedBudgetCategories.add(categoryKey);
+      showToast(
+        `⚠️ Orçamento de "${category}" foi ultrapassado! (${formatCurrency(spent)} / ${formatCurrency(budget)})`,
+        "error",
+        5000
+      );
+    } else if (percentage >= 80 && percentage < 100) {
+      const warnKey = `warn-${categoryKey}`;
+      if (!alertedBudgetCategories.has(warnKey)) {
+        alertedBudgetCategories.add(warnKey);
+        showToast(
+          `⏰ Atenção: "${category}" em ${percentage.toFixed(0)}% do orçamento (${formatCurrency(spent)} / ${formatCurrency(budget)})`,
+          "warning",
+          4000
+        );
+      }
+    }
+  });
 }
 
 async function ensureCategoriesForImportedTransactions(transactions) {
