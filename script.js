@@ -199,6 +199,7 @@ const closeMonthChecklist = document.getElementById("closeMonthChecklist");
 const saveTransactionBtn = document.getElementById("saveTransactionBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const formModeText = document.getElementById("formModeText");
+const globalSpinner = document.getElementById("globalSpinner");
 
 const categoryForm = document.getElementById("categoryForm");
 const newCategoryNameInput = document.getElementById("newCategoryName");
@@ -686,6 +687,7 @@ function setupSupabaseClient() {
 
 async function restoreSessionAndSync() {
   setSyncStatus("Verificando sessao...");
+  showGlobalSpinner();
 
   let data;
   try {
@@ -703,6 +705,8 @@ async function restoreSessionAndSync() {
     setSyncStatus("Falha ao verificar sessão. Continuando em modo local.");
     logErrorForDevelopment(error, "restoreSessionAndSync.catch");
     return;
+  } finally {
+    hideGlobalSpinner();
   }
 
   state.user = data.session?.user || null;
@@ -710,7 +714,12 @@ async function restoreSessionAndSync() {
 
   if (state.user) {
     subscribeToRealtime();
-    await pullCloudData();
+    showGlobalSpinner();
+    try {
+      await pullCloudData();
+    } finally {
+      hideGlobalSpinner();
+    }
   } else {
     setSyncStatus("Faca login para sincronizar com a nuvem.");
   }
@@ -746,7 +755,8 @@ async function onLoginSubmit(event) {
   }
 
   setAuthMessage("Entrando...");
-  setButtonBusy(loginBtn, true, "Entrando...");
+  showGlobalSpinner();
+  setLoadingState(true, loginBtn);
 
   try {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -768,7 +778,8 @@ async function onLoginSubmit(event) {
     setAuthMessage(msg);
     logErrorForDevelopment(error, "onLoginSubmit.catch");
   } finally {
-    setButtonBusy(loginBtn, false);
+    hideGlobalSpinner();
+    setLoadingState(false, loginBtn);
   }
 }
 
@@ -806,7 +817,8 @@ async function onRegisterClick() {
   }
 
   setAuthMessage("Criando conta...");
-  setButtonBusy(registerBtn, true, "Criando...");
+  showGlobalSpinner();
+  setLoadingState(true, registerBtn);
 
   try {
     const { error } = await supabaseClient.auth.signUp({ email, password });
@@ -827,7 +839,8 @@ async function onRegisterClick() {
     setAuthMessage(msg);
     logErrorForDevelopment(error, "onRegisterClick.catch");
   } finally {
-    setButtonBusy(registerBtn, false);
+    hideGlobalSpinner();
+    setLoadingState(false, registerBtn);
   }
 }
 
@@ -1022,9 +1035,19 @@ const amount = Number(amountInput.dataset.realValue || 0);
   }
 
   if (state.editingTransactionId) {
-    await updateTransaction(transaction);
+    try {
+      if (isCloudMode()) showGlobalSpinner();
+      await updateTransaction(transaction);
+    } finally {
+      if (isCloudMode()) hideGlobalSpinner();
+    }
   } else {
-    await saveTransaction(transaction);
+    try {
+      if (isCloudMode()) showGlobalSpinner();
+      await saveTransaction(transaction);
+    } finally {
+      if (isCloudMode()) hideGlobalSpinner();
+    }
   }
 
   resetTransactionForm();
@@ -2606,6 +2629,22 @@ function setButtonBusy(button, busy, busyLabel = "Processando...") {
 
   button.textContent = button.dataset.originalText || button.textContent;
   button.disabled = false;
+}
+
+function setLoadingState(isLoading, targetBtn = null) {
+  setButtonBusy(targetBtn, isLoading, "Aguarde…");
+}
+
+function showGlobalSpinner() {
+  if (globalSpinner) {
+    globalSpinner.classList.remove("is-hidden");
+  }
+}
+
+function hideGlobalSpinner() {
+  if (globalSpinner) {
+    globalSpinner.classList.add("is-hidden");
+  }
 }
 
 async function ensureCategoriesForImportedTransactions(transactions) {
