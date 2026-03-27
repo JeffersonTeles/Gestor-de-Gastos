@@ -1,4 +1,4 @@
-# FluxoForte (Vite + Supabase)
+# Gestor de Gastos (Vite + Supabase)
 
 Aplicacao de gestao financeira com autenticacao, sincronizacao em nuvem e realtime via Supabase.
 
