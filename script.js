@@ -626,9 +626,14 @@ function maybeShowPreDashboardGate() {
 }
 
 function setupSupabaseClient() {
+  const viteUrl = String(import.meta.env.VITE_SUPABASE_URL || "").trim();
+  const viteAnonKey = String(import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim();
+  const legacyUrl = String(import.meta.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+  const legacyAnonKey = String(import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+
   const cfg = {
-    url: String(import.meta.env.VITE_SUPABASE_URL || "").trim(),
-    anonKey: String(import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim()
+    url: viteUrl || legacyUrl,
+    anonKey: viteAnonKey || legacyAnonKey
   };
 
   if (!cfg.url || !cfg.anonKey) {
@@ -832,18 +837,24 @@ async function onClearAllDataClick() {
   try {
     if (isCloudMode()) {
       const tableNames = ["transactions", "category_budgets", "categories", "goals", "usage_events"];
-      for (const tableName of tableNames) {
-        const { error } = await supabaseClient
-          .from(tableName)
-          .delete()
-          .eq("user_id", state.user.id);
+      const deletionResults = await Promise.all(
+        tableNames.map(async (tableName) => {
+          const { error } = await supabaseClient
+            .from(tableName)
+            .delete()
+            .eq("user_id", state.user.id);
+          return { tableName, error };
+        })
+      );
 
-        if (error) {
-          const msg = getUserFriendlyErrorMessage(error, "database");
-          setAuthMessage(`Falha ao apagar dados na nuvem: ${msg}`);
-          logErrorForDevelopment(error, `onClearAllDataClick.${tableName}`);
-          return;
-        }
+      const failed = deletionResults.filter((item) => item.error);
+      if (failed.length > 0) {
+        failed.forEach((item) => logErrorForDevelopment(item.error, `onClearAllDataClick.${item.tableName}`));
+        const firstMsg = getUserFriendlyErrorMessage(failed[0].error, "database");
+        const failedTables = failed.map((item) => item.tableName).join(", ");
+        setAuthMessage(`Falha ao apagar dados na nuvem: ${firstMsg}`);
+        setSyncStatus(`Processo interrompido. Tabelas com falha: ${failedTables}.`);
+        return;
       }
     }
 
@@ -894,7 +905,6 @@ async function onClearAllDataClick() {
       ? "Todos os dados locais e da nuvem foram apagados."
       : "Todos os dados locais foram apagados.");
     setAuthMessage("Dados apagados com sucesso.");
-    trackEvent("all_data_cleared", { cloud: isCloudMode() });
   } catch (error) {
     const msg = getUserFriendlyErrorMessage(error, "database");
     setAuthMessage(`Erro ao apagar dados: ${msg}`);
@@ -1735,7 +1745,9 @@ async function onUndoLastImportClick() {
       .eq("import_batch_id", meta.batchId);
 
     if (error) {
-      importStatusText.textContent = `Nao foi possivel desfazer na nuvem: ${error.message}`;
+      const msg = getUserFriendlyErrorMessage(error, "sync");
+      importStatusText.textContent = `Nao foi possivel desfazer na nuvem: ${msg}`;
+      logErrorForDevelopment(error, "onUndoLastImportClick");
       return;
     }
   }
@@ -1866,7 +1878,9 @@ async function onResendPendingSyncClick() {
     const { error } = await supabaseClient.from("transactions").upsert(payload, { onConflict: "id" });
 
     if (error) {
-      importStatusText.textContent = `Falha ao reenviar pendencias: ${error.message}`;
+      const msg = getUserFriendlyErrorMessage(error, "sync");
+      importStatusText.textContent = `Falha ao reenviar pendencias: ${msg}`;
+      logErrorForDevelopment(error, "onResendPendingSyncClick");
       setSyncStatus("Pendencias continuam locais. Tente novamente.");
       return;
     }
@@ -1995,6 +2009,7 @@ async function onConfirmImportClick() {
       const { data, error } = await Promise.race([insertPromise, timeoutPromise]);
 
       if (error) {
+        const msg = getUserFriendlyErrorMessage(error, "sync");
         state.transactions.push(...selected.map((tx) => ({
           ...tx,
           import_batch_id: importBatchId,
@@ -2004,10 +2019,11 @@ async function onConfirmImportClick() {
         })));
         persistTransactions();
         render();
-        importStatusText.textContent = `Importacao salva localmente (${selected.length} itens), mas falhou na nuvem: ${error.message}`;
+        importStatusText.textContent = `Importacao salva localmente (${selected.length} itens), mas falhou na nuvem: ${msg}`;
         setSyncStatus("Importacao pendente de sincronizacao na nuvem.");
         syncMode = "pending";
-        syncErrorMessage = error.message || "falha na nuvem";
+        syncErrorMessage = msg;
+        logErrorForDevelopment(error, "onConfirmImportClick");
       } else {
         state.transactions.push(...(data || []).map((tx) => normalizeTransaction({ ...tx, pending_sync: false })));
         persistTransactions();
@@ -2069,7 +2085,9 @@ async function onConfirmImportClick() {
       failedFiles: draft.failedFiles || 0
     });
   } catch (error) {
-    importStatusText.textContent = `Falha ao confirmar importacao: ${error?.message || "erro inesperado"}.`;
+    const msg = getUserFriendlyErrorMessage(error, "import");
+    importStatusText.textContent = `Falha ao confirmar importacao: ${msg}.`;
+    logErrorForDevelopment(error, "onConfirmImportClick.catch");
   } finally {
     setButtonBusy(confirmImportBtn, false);
   }
@@ -2292,7 +2310,9 @@ async function updateImportPreview() {
   try {
     payloads = await readImportPayloads();
   } catch (error) {
-    importBatchPreview.innerHTML = `<small class="helper-text">Pre-visualizacao indisponivel: ${escapeHtml(error.message || "erro ao ler arquivos")}. Se o PDF for escaneado, converta para CSV/OFX ou use PDF com texto selecionavel.</small>`;
+    const msg = getUserFriendlyErrorMessage(error, "file");
+    importBatchPreview.innerHTML = `<small class="helper-text">Pre-visualizacao indisponivel: ${escapeHtml(msg)}. Se o PDF for escaneado, converta para CSV/OFX ou use PDF com texto selecionavel.</small>`;
+    logErrorForDevelopment(error, "updateImportPreview");
     return;
   }
 
@@ -2562,7 +2582,9 @@ async function ensureCategoriesForImportedTransactions(transactions) {
     const payload = missing.map((name) => ({ user_id: state.user.id, name, is_default: false }));
     const { error } = await supabaseClient.from("categories").upsert(payload, { onConflict: "user_id,name" });
     if (error) {
-      setAuthMessage(`Categorias criadas localmente. Falha ao sincronizar categorias: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Categorias criadas localmente. Falha ao sincronizar categorias: ${msg}`);
+      logErrorForDevelopment(error, "ensureCategoriesForImportedTransactions");
     }
   }
 }
@@ -2903,7 +2925,9 @@ async function saveTransaction(transaction) {
       .single();
 
     if (error) {
-      setAuthMessage(`Erro ao sincronizar transacao: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Erro ao sincronizar transacao: ${msg}`);
+      logErrorForDevelopment(error, "saveTransaction");
       return;
     }
 
@@ -2939,7 +2963,9 @@ async function updateTransaction(transaction) {
       .single();
 
     if (error) {
-      setAuthMessage(`Erro ao atualizar transacao: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Erro ao atualizar transacao: ${msg}`);
+      logErrorForDevelopment(error, "updateTransaction");
       return;
     }
 
@@ -2961,8 +2987,10 @@ async function deleteTransaction(id) {
 
     if (error) {
       cloudDeleteFailed = true;
-      setAuthMessage(`Falha ao excluir na nuvem: ${error.message}. O item foi removido localmente.`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Falha ao excluir na nuvem: ${msg}. O item foi removido localmente.`);
       setSyncStatus("Atencao: exclusao pendente na nuvem. Tente novamente em alguns instantes.");
+      logErrorForDevelopment(error, "deleteTransaction");
     } else {
       setSyncStatus("Transacao removida da nuvem.");
     }
@@ -2996,7 +3024,9 @@ async function removeCategory(categoryName) {
       .eq("name", categoryName);
 
     if (error) {
-      setAuthMessage(`Falha ao remover categoria: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Falha ao remover categoria: ${msg}`);
+      logErrorForDevelopment(error, "removeCategory");
       return;
     }
 
@@ -3043,7 +3073,9 @@ async function saveCategoryBudget(categoryName, amount) {
     );
 
     if (error) {
-      setAuthMessage(`Falha ao salvar orcamento: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Falha ao salvar orcamento: ${msg}`);
+      logErrorForDevelopment(error, "saveCategoryBudget");
       return;
     }
   }
