@@ -2,6 +2,25 @@ import { createClient } from "@supabase/supabase-js";
 import pdfWorkerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { createWorker } from "tesseract.js";
 import {
+  sanitizeHTML,
+  escapeAttribute,
+  isValidEmail,
+  validatePassword,
+  sanitizeNumber,
+  sanitizeDate,
+  sanitizeCategory,
+  sanitizeDescription,
+  loginRateLimiter,
+  importRateLimiter,
+  validateAndSanitizeTransaction,
+  detectXSS,
+  sanitizeInput
+} from "./security-utils.js";
+import {
+  getUserFriendlyErrorMessage,
+  logErrorForDevelopment
+} from "./error-utils.js";
+import {
   buildProjectionSeries as buildProjectionSeriesEngine,
   calculateFinancialScore as calculateFinancialScoreEngine,
   calculateTotals,
@@ -625,7 +644,9 @@ async function restoreSessionAndSync() {
 
   const { data, error } = await supabaseClient.auth.getSession();
   if (error) {
-    setAuthMessage(`Erro ao recuperar sessao: ${error.message}`);
+    const msg = getUserFriendlyErrorMessage(error, "auth");
+    setAuthMessage(msg);
+    logErrorForDevelopment(error, "restoreSessionAndSync");
     return;
   }
 
@@ -646,8 +667,23 @@ async function onLoginSubmit(event) {
 
   const email = authEmailInput.value.trim();
   const password = authPasswordInput.value;
+  
+  // Validar email/senha presentes
   if (!email || !password) {
     setAuthMessage("Informe e-mail e senha.");
+    return;
+  }
+
+  // Validar formato de email
+  if (!isValidEmail(email)) {
+    setAuthMessage("E-mail inválido.");
+    return;
+  }
+
+  // Aplicar rate limiter
+  if (!loginRateLimiter.check(email)) {
+    setAuthMessage("Muitas tentativas de login. Tente novamente em alguns minutos.");
+    trackEvent("auth_rate_limit_exceeded", { emailDomain: email.split("@")[1] || "" });
     return;
   }
 
@@ -657,7 +693,12 @@ async function onLoginSubmit(event) {
   try {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
-      setAuthMessage(`Falha no login: ${error.message}`);
+      // Não expor detalhes do erro para o usuário (segurança)
+      const userMessage = error.message.includes("Invalid login credentials") 
+        ? "E-mail ou senha incorretos."
+        : "Erro ao fazer login. Tente novamente.";
+      setAuthMessage(userMessage);
+      console.error("[SECURITY] Login failed:", error.code); // Log apenas para dev
       return;
     }
 
@@ -677,8 +718,28 @@ async function onRegisterClick() {
 
   const email = authEmailInput.value.trim();
   const password = authPasswordInput.value;
+  
   if (!email || !password) {
     setAuthMessage("Informe e-mail e senha para criar conta.");
+    return;
+  }
+
+  // Validar email
+  if (!isValidEmail(email)) {
+    setAuthMessage("E-mail inválido.");
+    return;
+  }
+
+  // Validar força da senha
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    setAuthMessage("Senha: " + passwordValidation.errors[0]);
+    return;
+  }
+
+  // Aplicar rate limiter
+  if (!loginRateLimiter.check(email)) {
+    setAuthMessage("Muitas tentativas. Tente novamente em alguns minutos.");
     return;
   }
 
@@ -688,7 +749,12 @@ async function onRegisterClick() {
   try {
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
-      setAuthMessage(`Falha ao criar conta: ${error.message}`);
+      // Não expor detalhes internos
+      const userMessage = error.message.includes("already registered")
+        ? "Este e-mail já está registrado."
+        : "Erro ao criar conta. Tente novamente.";
+      setAuthMessage(userMessage);
+      console.error("[SECURITY] Register failed:", error.code);
       return;
     }
 
@@ -704,7 +770,9 @@ async function onLogoutClick() {
 
   const { error } = await supabaseClient.auth.signOut();
   if (error) {
-    setAuthMessage(`Erro ao sair: ${error.message}`);
+    const msg = getUserFriendlyErrorMessage(error, "auth");
+    setAuthMessage(msg);
+    logErrorForDevelopment(error, "onLogoutClick");
     return;
   }
 
@@ -716,17 +784,44 @@ async function onTransactionSubmit(event) {
   event.preventDefault();
 
   const formData = new FormData(transactionForm);
-  const amount = Number(formData.get("amount"));
+  
+  // Sanitizar inputs
+  const amount = sanitizeNumber(formData.get("amount"));
+  const description = sanitizeDescription(String(formData.get("description")).trim());
+  const date = sanitizeDate(String(formData.get("date")));
+  const type = String(formData.get("type"));
+  const category = sanitizeCategory(String(formData.get("category")));
 
-  if (!Number.isFinite(amount) || amount <= 0) return;
+  // Validar campos obrigatórios
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showToast("Valor deve ser maior que zero.", TOAST_TYPES.ERROR);
+    return;
+  }
+
+  if (!description) {
+    showToast("Descrição é obrigatória.", TOAST_TYPES.ERROR);
+    return;
+  }
+
+  if (!date) {
+    showToast("Data inválida.", TOAST_TYPES.ERROR);
+    return;
+  }
+
+  // Detectar tentativas de XSS (não impedir, só alertar em dev)
+  if (detectXSS(description)) {
+    console.warn("[SECURITY] Potencial XSS detectado na descrição:", description);
+    showToast("Descrição contém caracteres não permitidos.", TOAST_TYPES.ERROR);
+    return;
+  }
 
   const transaction = {
     id: state.editingTransactionId || crypto.randomUUID(),
-    description: String(formData.get("description")).trim(),
+    description,
     amount,
-    date: normalizeDateForDateInput(String(formData.get("date"))),
-    type: String(formData.get("type")),
-    category: String(formData.get("category")),
+    date,
+    type,
+    category,
     source_bank: "Manual",
     import_hash: null,
     import_batch_id: null,
@@ -744,8 +839,6 @@ async function onTransactionSubmit(event) {
       transaction.imported_at = original.imported_at || null;
     }
   }
-
-  if (!transaction.description || !transaction.date) return;
 
   if (state.editingTransactionId) {
     await updateTransaction(transaction);
@@ -785,7 +878,9 @@ async function onGoalsSubmit(event) {
     );
 
     if (error) {
-      setAuthMessage(`Meta salva localmente. Erro ao enviar para nuvem: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "sync");
+      setAuthMessage(`Meta salva localmente. ${msg}`);
+      logErrorForDevelopment(error, "onGoalsSubmit");
     } else {
       setSyncStatus("Metas sincronizadas.");
     }
@@ -868,7 +963,9 @@ async function onCategorySubmit(event) {
     });
 
     if (error) {
-      setAuthMessage(`Falha ao criar categoria: ${error.message}`);
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      setAuthMessage(`Falha ao criar categoria: ${msg}`);
+      logErrorForDevelopment(error, "onNewCategorySubmit");
       return;
     }
 
@@ -1072,7 +1169,9 @@ async function onGenerateRecurringClick() {
       .select("id, description, amount, date, type, category, source_bank, import_hash, import_batch_id, import_source_format, imported_at");
 
     if (error) {
-      recurringStatusText.textContent = `Falha ao gerar recorrencias: ${error.message}`;
+      const msg = getUserFriendlyErrorMessage(error, "database");
+      recurringStatusText.textContent = `Falha ao gerar recorrências: ${msg}`;
+      logErrorForDevelopment(error, "onRecurringRequestSubmit");
       return;
     }
 
@@ -1285,7 +1384,9 @@ async function onImportSubmit(event) {
     try {
       payloads = await readImportPayloads();
     } catch (error) {
-      importStatusText.textContent = `Falha ao ler arquivo(s): ${error.message || "erro desconhecido"}.`;
+      const msg = getUserFriendlyErrorMessage(error, "import");
+      importStatusText.textContent = `Falha ao ler arquivo(s): ${msg}.`;
+      logErrorForDevelopment(error, "onImportFilesSelected");
       return;
     }
     if (!payloads.length) {
