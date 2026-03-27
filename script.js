@@ -2415,7 +2415,7 @@ async function onExportMonthlyPdfClick() {
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
 
   pdf.setFontSize(16);
-  pdf.text("FluxoForte - Relatorio Mensal", 40, 42);
+  pdf.text("Gestor de Gastos - Relatorio Mensal", 40, 42);
   pdf.setFontSize(11);
   pdf.text(`Mes: ${report.monthLabel}`, 40, 62);
   pdf.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 40, 78);
