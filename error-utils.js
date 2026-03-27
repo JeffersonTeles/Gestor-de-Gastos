@@ -13,6 +13,12 @@ export function getUserFriendlyErrorMessage(error, context = "generic") {
   switch (context) {
     case "auth":
       if (message.includes("invalid")) return "Credenciais inválidas.";
+      if (message.includes("email not confirmed") || message.includes("email_not_confirmed")) {
+        return "Confirme seu e-mail antes de entrar.";
+      }
+      if (message.includes("too many requests") || code === "over_request_rate_limit") {
+        return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+      }
       if (code === "PGRST116") return "Usuário não encontrado.";
       if (message.includes("too many")) return "Muitas tentativas. Tente novamente em alguns minutos.";
       if (message.includes("timeout")) return "Conexão lenta. Tente novamente.";

@@ -693,12 +693,9 @@ async function onLoginSubmit(event) {
   try {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
-      // Não expor detalhes do erro para o usuário (segurança)
-      const userMessage = error.message.includes("Invalid login credentials") 
-        ? "E-mail ou senha incorretos."
-        : "Erro ao fazer login. Tente novamente.";
-      setAuthMessage(userMessage);
-      console.error("[SECURITY] Login failed:", error.code); // Log apenas para dev
+      const msg = getUserFriendlyErrorMessage(error, "auth");
+      setAuthMessage(msg);
+      logErrorForDevelopment(error, "onLoginSubmit");
       return;
     }
 
@@ -749,12 +746,12 @@ async function onRegisterClick() {
   try {
     const { error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
-      // Não expor detalhes internos
-      const userMessage = error.message.includes("already registered")
+      const alreadyRegistered = String(error.message || "").toLowerCase().includes("already registered");
+      const msg = alreadyRegistered
         ? "Este e-mail já está registrado."
-        : "Erro ao criar conta. Tente novamente.";
-      setAuthMessage(userMessage);
-      console.error("[SECURITY] Register failed:", error.code);
+        : getUserFriendlyErrorMessage(error, "auth");
+      setAuthMessage(msg);
+      logErrorForDevelopment(error, "onRegisterClick");
       return;
     }
 
