@@ -179,6 +179,7 @@ const monthFilter = document.getElementById("monthFilter");
 const clearFilterBtn = document.getElementById("clearFilterBtn");
 const clearAllDataBtn = document.getElementById("clearAllDataBtn");
 const clearAllDataBtnSecondary = document.getElementById("clearAllDataBtnSecondary");
+const clearAllDataBtnTop = document.getElementById("clearAllDataBtnTop");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const trendChart = document.getElementById("trendChart");
 const categoryChart = document.getElementById("categoryChart");
@@ -475,6 +476,7 @@ function bindEvents() {
   });
   clearAllDataBtn?.addEventListener("click", onClearAllDataClick);
   clearAllDataBtnSecondary?.addEventListener("click", onClearAllDataClick);
+  clearAllDataBtnTop?.addEventListener("click", onClearAllDataClick);
 
   exportCsvBtn.addEventListener("click", onExportCsvClick);
   exportMonthlyCsvBtn.addEventListener("click", onExportMonthlyCsvClick);
@@ -905,6 +907,7 @@ async function onClearAllDataClick() {
 function setClearAllButtonsBusy(busy, busyLabel = "Apagando...") {
   setButtonBusy(clearAllDataBtn, busy, busyLabel);
   setButtonBusy(clearAllDataBtnSecondary, busy, busyLabel);
+  setButtonBusy(clearAllDataBtnTop, busy, busyLabel);
 }
 
 async function onTransactionSubmit(event) {
