@@ -183,6 +183,13 @@ h2 {
   margin-top: 0.8rem;
 }
 
+.hero-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+
 .is-hidden {
   display: none !important;
 }
